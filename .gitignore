@@ -1,0 +1,14 @@
+# Deploy
+.vercel
+
+# Dependencies
+node_modules
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dokumen sumber — soal & kunci jawaban sudah tertanam di index.html
+*.pdf
+soal.txt
+jawaban.txt
