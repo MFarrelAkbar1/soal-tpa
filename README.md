@@ -32,8 +32,8 @@ Di layar awal tersedia dua mode:
 - **Mode Ujian** — simulasi bertimer per bagian, soal diambil acak dan diacak
   ulang tiap kali mulai, tanpa umpan balik sampai waktu habis. Ada navigator
   soal untuk melompat antar nomor dan tombol "Selesaikan sekarang".
-  Paketnya: GMA Verbal 17 soal / 4 menit, GMA Numerical 15 soal / 5 menit,
-  Smart Ability to Learn 15 soal / 5 menit.
+  Paketnya: GMA Verbal 17 soal / 8 menit, GMA Numerical 15 soal / 10 menit,
+  Smart Ability to Learn 15 soal / 8 menit.
 
 Setelah selesai, halaman hasil menampilkan skor dan review tiap soal.
 
