@@ -1,14 +1,15 @@
 # Deploy
 .vercel
 
-# Dependencies
+# Dependencies & build
 node_modules
+dist
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Dokumen sumber — soal & kunci jawaban sudah tertanam di index.html
+# Dokumen sumber — soal & kunci jawaban sudah tertanam di src/data/
 *.pdf
 soal.txt
 jawaban.txt

@@ -1,4 +1,8 @@
-# Dokumen sumber — isinya sudah tertanam di index.html
+# Dokumen sumber — isinya sudah tertanam di src/data/
 *.pdf
 soal.txt
 jawaban.txt
+
+# Dibangun ulang oleh Vercel
+node_modules
+dist
