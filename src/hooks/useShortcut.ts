@@ -18,6 +18,8 @@ export function useShortcut(sesi: Sesi, h: Handler): void {
       const { sesi: s, h } = ref.current;
       if (s.layar !== "latihan" && s.layar !== "ujian") return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // jangan menjawab soal di belakang sheet/dialog yang sedang terbuka
+      if (document.querySelector('[aria-modal="true"]')) return;
 
       const diTombol = e.target instanceof HTMLElement && e.target.tagName === "BUTTON";
       if (diTombol && (e.key === "Enter" || e.key === " ")) return;

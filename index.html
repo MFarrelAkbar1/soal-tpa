@@ -2,8 +2,22 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#FBF8F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161A" media="(prefers-color-scheme: dark)">
 <title>Latihan TPA</title>
+<script>
+  // Anti-kedip: pasang tema sebelum React dan CSS dirender.
+  // Pilihan disimpan di localStorage "soal-tpa:tema" (terang | gelap | sistem); logika sama dengan src/lib/tema.ts.
+  (function () {
+    var pilihan = "sistem";
+    try { pilihan = localStorage.getItem("soal-tpa:tema") || "sistem"; } catch (e) {}
+    var gelap = pilihan === "gelap" ||
+      (pilihan !== "terang" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.setAttribute("data-theme", gelap ? "dark" : "light");
+  })();
+</script>
 </head>
 <body>
 <div id="root"></div>

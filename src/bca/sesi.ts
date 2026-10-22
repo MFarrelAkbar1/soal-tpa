@@ -83,12 +83,14 @@ export function muatSesi(): SesiBca | null {
   }
 }
 
-export function simpanSesi(s: SesiBca | null): void {
+// true bila berhasil ditulis; false bila penyimpanan tidak tersedia (sesi tetap jalan di memori)
+export function simpanSesi(s: SesiBca | null): boolean {
   try {
     if (s) window.localStorage.setItem(KUNCI, JSON.stringify(s));
     else window.localStorage.removeItem(KUNCI);
+    return true;
   } catch {
-    // penyimpanan tidak tersedia (mode privat, kuota penuh): sesi tetap jalan di memori
+    return false;
   }
 }
 

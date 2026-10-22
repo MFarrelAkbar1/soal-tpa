@@ -42,6 +42,12 @@ npm run validate  # validasi data saja
     diri, tombol salin/unduh .txt. Tidak ada skor.
   - Panel Panduan bisa dibuka kapan saja; sesi (termasuk teks yang sedang
     diketik dan timer) tersimpan di localStorage.
+- **Tampilan**: Tailwind CSS v4 dengan design token (warna, radius, spacing) di
+  `src/styles.css`; mode terang/gelap ikut sistem plus toggle Terang/Gelap/Sistem
+  (disimpan di localStorage, dipasang sebelum render agar tidak berkedip).
+  Mobile-first dengan target sentuh ≥48px; navigator ujian dan Panduan tampil
+  sebagai bottom sheet di HP dan drawer di desktop. Animasi dimatikan di Mode
+  Ujian (kecuali transisi pindah soal) dan bila prefers-reduced-motion aktif.
 - **Shortcut keyboard**: A–F / 1–6 untuk menjawab, Enter untuk lanjut, dan
   panah kiri/kanan untuk pindah soal di mode ujian.
 
@@ -65,7 +71,7 @@ npm run validate  # validasi data saja
     ├── sesi.ts                 # state & reducer sesi latihan/ujian
     ├── hooks/useShortcut.ts    # shortcut keyboard
     ├── components/             # Kop, Menu, LembarSoal, Navigator, Hasil, bca/...
-    ├── lib/util.ts
+    ├── lib/util.ts, lib/tema.ts
     └── styles.css
 ```
 

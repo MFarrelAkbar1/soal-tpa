@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { ContohJawaban as Contoh } from "../../bca/types";
+import { Ikon } from "../Ikon";
 import { Daftar } from "./TeksKasus";
 
 interface Props {
   contoh: Contoh[] | null;
-  terbuka?: boolean; // langsung tampil tanpa tombol buka (halaman hasil)
+  terbuka?: boolean; // langsung tampil tanpa tombol buka (halaman rangkuman)
 }
 
 // Contoh jawaban dari PDF. Bila ada lebih dari satu versi (mis. Singkat dan Lengkap), bisa dibuka bergantian.
@@ -18,8 +19,9 @@ export function ContohJawaban({ contoh, terbuka = false }: Props) {
 
   if (!buka) {
     return (
-      <button type="button" className="tombol hantu" onClick={() => setBuka(true)}>
-        Buka contoh jawaban
+      <button type="button" className="tombol sekunder penuh" onClick={() => setBuka(true)} aria-expanded="false">
+        <Ikon nama="buku" ukuran={18} />
+        Buka contoh jawaban{contoh.length > 1 ? " (" + contoh.map((c) => c.label).join(" / ") + ")" : ""}
       </button>
     );
   }
@@ -29,14 +31,14 @@ export function ContohJawaban({ contoh, terbuka = false }: Props) {
     <div className="bca-contoh">
       <div className="bca-contoh-kepala">
         {contoh.length > 1 ? (
-          <div className="bca-tab" role="tablist" aria-label="Versi contoh jawaban">
+          <div className="segmen" role="tablist" aria-label="Versi contoh jawaban">
             {contoh.map((x, i) => (
               <button
                 key={x.label}
                 type="button"
                 role="tab"
                 aria-selected={i === aktif}
-                className={"bca-tab-tombol" + (i === aktif ? " aktif" : "")}
+                className={"segmen-tombol" + (i === aktif ? " aktif" : "")}
                 onClick={() => setAktif(i)}
               >
                 {x.label}
@@ -44,13 +46,13 @@ export function ContohJawaban({ contoh, terbuka = false }: Props) {
             ))}
           </div>
         ) : (
-          <span className="bca-contoh-label">{c.label}</span>
+          <span className="bca-contoh-label">Contoh jawaban · {c.label}</span>
         )}
         {!terbuka && (
-          <button type="button" className="bca-tautan" onClick={() => setBuka(false)}>Tutup</button>
+          <button type="button" className="tautan" onClick={() => setBuka(false)} aria-expanded="true">Tutup</button>
         )}
       </div>
-      <div role="tabpanel">
+      <div role="tabpanel" aria-label={c.label}>
         {c.poin?.map((d) => <Daftar key={d.judul} d={d} />)}
         {c.paragraf.map((p, i) => <p className="bca-paragraf" key={i}>{p}</p>)}
         <p className="bca-sumber">Sumber: {c.sumber}</p>
