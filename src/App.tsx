@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import { bankSoal } from "./data";
 import { PAKET } from "./config/paket";
 import type { PaketUjian } from "./types";
@@ -12,10 +12,32 @@ import { AksiLatihan } from "./components/AksiLatihan";
 import { AksiUjian } from "./components/AksiUjian";
 import { Navigator } from "./components/Navigator";
 import { HasilLatihan, HasilUjian } from "./components/Hasil";
+import { BcaFinance } from "./components/bca/BcaFinance";
+import type { ModeBca, SesiBca } from "./bca/sesi";
+import { muatSesi, sesiBaru, simpanSesi } from "./bca/sesi";
 
 export default function App() {
   const [s, dispatch] = useReducer(sesiReducer, sesiAwal);
   const { layar, soal, indeks, pilihan, paket } = s;
+
+  // Section BCA Finance punya sesi sendiri yang disimpan ke localStorage.
+  const [bca, setBca] = useState<SesiBca | null>(muatSesi);
+  const [bcaAktif, setBcaAktif] = useState(false);
+  useEffect(() => simpanSesi(bca), [bca]);
+
+  const ubahBca = useCallback((f: (x: SesiBca) => SesiBca) => setBca((x) => (x ? f(x) : x)), []);
+  const gantiBca = useCallback((x: SesiBca) => setBca(x), []);
+  const keMenuDariBca = useCallback(() => setBcaAktif(false), []);
+
+  const mulaiBca = (mode: ModeBca) => {
+    if (bca && !bca.selesai && Object.values(bca.jawaban).some((t) => t.trim())) {
+      const pesan = "Ada sesi BCA Finance yang belum selesai beserta jawabannya.\n\n" +
+        "Mulai sesi baru dan hapus jawaban tersimpan itu?";
+      if (!window.confirm(pesan)) return;
+    }
+    setBca(sesiBaru(mode));
+    setBcaAktif(true);
+  };
 
   const mulaiLatihan = useCallback(() => dispatch({ type: "mulai-latihan", soal: bankSoal }), []);
 
@@ -54,6 +76,10 @@ export default function App() {
   const diSoal = layar === "latihan" || layar === "ujian";
   const terjawab = pilihan[indeks] !== null && pilihan[indeks] !== undefined;
 
+  if (bcaAktif && bca) {
+    return <BcaFinance sesi={bca} onUbah={ubahBca} onGanti={gantiBca} onMenu={keMenuDariBca} />;
+  }
+
   let kop;
   switch (layar) {
     case "menu":
@@ -78,7 +104,15 @@ export default function App() {
       {kop}
 
       {layar === "menu" && (
-        <Menu bank={bankSoal} paket={PAKET} onLatihan={mulaiLatihan} onUjian={mulaiUjian} />
+        <Menu
+          bank={bankSoal}
+          paket={PAKET}
+          onLatihan={mulaiLatihan}
+          onUjian={mulaiUjian}
+          bcaTersimpan={bca}
+          onBca={mulaiBca}
+          onLanjutBca={() => setBcaAktif(true)}
+        />
       )}
 
       {diSoal && (

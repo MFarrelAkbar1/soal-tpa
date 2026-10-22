@@ -2,11 +2,16 @@
 // Gagal (exit 1) bila: id duplikat, answer di luar rentang options,
 // jumlah options di luar 2–6, file image tidak ada di public/,
 // atau paket ujian yang section-nya tidak punya soal.
+// Section BCA Finance (esai): caseId harus ada, tiap kasus punya soal dan teks,
+// answer null atau berisi contoh jawaban yang tidak kosong, baris tabel selebar kolomnya,
+// dan paket ujian tidak meminta kasus lebih banyak dari yang tersedia.
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { bankSoal } from "../src/data/index.ts";
 import { PAKET } from "../src/config/paket.ts";
+import { kasusBca, soalBca } from "../src/bca/data/index.ts";
+import { PAKET_BCA } from "../src/config/paket-bca.ts";
 
 const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 const galat: string[] = [];
@@ -35,9 +40,50 @@ for (const p of PAKET) {
   }
 }
 
+const idKasus = new Set<string>();
+for (const k of kasusBca) {
+  if (idKasus.has(k.id)) galat.push(`kasus ${k.id}: id duplikat`);
+  idKasus.add(k.id);
+  if (!k.passage.length || k.passage.some((p) => !p.trim())) galat.push(`kasus ${k.id}: passage kosong`);
+  if (!k.sumber.length) galat.push(`kasus ${k.id}: sumber PDF kosong`);
+  if (!soalBca.some((s) => s.caseId === k.id)) galat.push(`kasus ${k.id}: tidak punya soal`);
+  for (const t of k.tabel ?? []) {
+    t.baris.forEach((b, i) => {
+      if (b.length !== t.kolom.length) galat.push(`kasus ${k.id}: tabel "${t.judul}" baris ${i + 1} berisi ${b.length} sel, kolom ${t.kolom.length}`);
+    });
+  }
+}
+
+for (const s of soalBca) {
+  const label = s.id || "(tanpa id)";
+  if (!s.id) galat.push(`${label}: id kosong`);
+  else if (idTerpakai.has(s.id)) galat.push(`${label}: id duplikat`);
+  idTerpakai.add(s.id);
+  if (s.type !== "essay") galat.push(`${label}: type harus "essay"`);
+  if (!s.question.trim()) galat.push(`${label}: question kosong`);
+  if (!idKasus.has(s.caseId)) galat.push(`${label}: caseId "${s.caseId}" tidak ada`);
+  if (s.answer !== null) {
+    if (!s.answer.length) galat.push(`${label}: answer berupa daftar kosong; pakai null bila PDF tidak memuat contoh jawaban`);
+    for (const c of s.answer) {
+      const isi = c.paragraf.some((p) => p.trim()) || (c.poin ?? []).some((d) => d.butir.length);
+      if (!isi) galat.push(`${label}: contoh jawaban "${c.label}" kosong`);
+      if (!c.sumber.trim()) galat.push(`${label}: contoh jawaban "${c.label}" tanpa sumber`);
+    }
+  }
+}
+
+const kolamUjian = kasusBca.filter((k) => k.ujian).length;
+for (const p of PAKET_BCA) {
+  if (p.jumlahKasus < 1 || p.jumlahKasus > kolamUjian) {
+    galat.push(`paket BCA ${p.id}: jumlahKasus ${p.jumlahKasus}, tersedia ${kolamUjian}`);
+  }
+}
+
 if (galat.length) {
   console.error(`Validasi data GAGAL (${galat.length} masalah):`);
   for (const g of galat) console.error("  - " + g);
   process.exit(1);
 }
 console.log(`Validasi data OK: ${bankSoal.length} soal, ${PAKET.length} paket ujian.`);
+console.log(`BCA Finance OK: ${soalBca.length} soal esai dari ${kasusBca.length} kasus, ` +
+  `${soalBca.filter((s) => s.answer).length} dengan contoh jawaban, ${PAKET_BCA.length} paket ujian.`);
