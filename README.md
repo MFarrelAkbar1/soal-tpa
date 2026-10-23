@@ -11,7 +11,8 @@ Bank soal berisi **96 soal** dari tiga bagian tes:
 | GMA Numerical | Numerik | 24 | `src/data/gma-numerical.ts` |
 | Smart Ability to Learn | Penalaran Gambar (bergambar) | 17 | `src/data/smart-ability.ts` |
 
-Ditambah section **BCA Finance**: 30 soal esai studi kasus dari 24 kasus
+Ditambah section **Analogi Gambar** (soal bergambar dibuat generator, baru setiap
+attempt) dan section **BCA Finance**: 30 soal esai studi kasus dari 24 kasus
 (`src/bca/data/`), 18 di antaranya punya contoh jawaban dari PDF.
 
 ## Menjalankan
@@ -22,6 +23,7 @@ npm run dev       # server pengembangan
 npm run build     # validasi data + cek tipe + build ke dist/
 npm run preview   # sajikan hasil build secara lokal
 npm run validate  # validasi data saja
+npm test          # tes generator Analogi Gambar (1000 soal harus lolos validasi)
 ```
 
 ## Fitur
@@ -33,6 +35,21 @@ npm run validate  # validasi data saja
   konfirmasi bila masih ada yang kosong. Ujian ditutup otomatis saat waktu
   habis. Halaman hasil menampilkan rincian per kategori dan pembahasan semua
   soal.
+- **Analogi Gambar**: format "A diubah menjadi B, maka C diubah menjadi salah
+  satu dari gambar 1–5". Bangun digambar sebagai SVG inline oleh generator
+  (`src/analogi/`), jadi setiap attempt berisi soal baru.
+  - Layar petunjuk dengan contoh resmi (lingkaran besar → kecil) sebelum mulai.
+  - Mode Ujian: 20 soal (8 mudah, 8 sedang, 4 sulit, urutan acak), 10 menit,
+    ditutup otomatis saat waktu habis. Mode Latihan: tanpa timer, pembahasan
+    langsung. Komposisi & durasi di `src/config/analogi.ts`.
+  - Mudah = 1 aturan, sedang = 2 aturan, sulit = 3 aturan atau bangun di dalam
+    bangun. Aturan: ukuran, putar 45°/90°/180°, cermin, isi (putih/hitam/arsir),
+    jumlah bangun, jumlah sisi, posisi titik, tebal garis, tukar bangun dalam/luar.
+  - Setiap soal divalidasi saat dibuat: pilihan tidak ada yang kembar, setiap
+    aturan terlihat, dan tidak ada tafsiran lain dari A→B (kombinasi 1–3 aturan
+    mana pun) yang menunjuk pengecoh. Soal yang ambigu dibuang lalu dibuat ulang.
+  - Penjelasan dan alasan tiap pengecoh dibuat otomatis dari aturannya.
+  - Sesi (soal, jawaban, timer) tersimpan di localStorage; shortcut 1–5.
 - **BCA Finance** (esai, tidak dinilai otomatis):
   - Mode Latihan: semua soal berurutan, teks kasus di atas pertanyaan, satu
     kotak esai bebas, contoh jawaban bisa dibuka (versi Singkat/Lengkap bergantian).
@@ -62,15 +79,18 @@ npm run validate  # validasi data saja
 │   ├── legacy.html             # versi satu-file lama (sementara, untuk pembanding)
 │   └── robots.txt              # melarang semua crawler mengindeks situs
 ├── scripts/validate-data.ts    # dijalankan otomatis saat build
+├── scripts/test-analogi.ts     # tes generator Analogi Gambar, juga dijalankan saat build
 └── src/
     ├── types.ts                # tipe Soal & PaketUjian
     ├── config/paket.ts         # paket Mode Ujian (section, jumlah soal, durasi)
     ├── config/paket-bca.ts     # paket ujian BCA Finance + format 5 slide
+    ├── config/analogi.ts       # komposisi soal & durasi Analogi Gambar
+    ├── analogi/                # model gambar, aturan, generator + validator, sesi
     ├── bca/                    # tipe, data kasus/esai, panduan, sesi, ekspor BCA Finance
     ├── data/                   # bank soal per section + index.ts
     ├── sesi.ts                 # state & reducer sesi latihan/ujian
     ├── hooks/useShortcut.ts    # shortcut keyboard
-    ├── components/             # Kop, Menu, LembarSoal, Navigator, Hasil, bca/...
+    ├── components/             # Kop, Menu, LembarSoal, Navigator, Hasil, analogi/, bca/...
     ├── lib/util.ts, lib/tema.ts
     └── styles.css
 ```

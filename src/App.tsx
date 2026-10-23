@@ -17,6 +17,10 @@ import { HasilLatihan, HasilUjian } from "./components/Hasil";
 import { BcaFinance } from "./components/bca/BcaFinance";
 import type { ModeBca, SesiBca } from "./bca/sesi";
 import { muatSesi, sesiBaru, simpanSesi } from "./bca/sesi";
+import { AnalogiGambar } from "./components/analogi/AnalogiGambar";
+import { PetunjukAnalogi } from "./components/analogi/PetunjukAnalogi";
+import type { ModeAnalogi, SesiAnalogi } from "./analogi/sesi";
+import * as sesiAnalogi from "./analogi/sesi";
 
 export default function App() {
   const [s, dispatch] = useReducer(sesiReducer, sesiAwal);
@@ -31,6 +35,27 @@ export default function App() {
     if (bca) setStatusSimpan({ ok, pada: Date.now() });
   }, [bca]);
   const [navBuka, setNavBuka] = useState(false);
+
+  // Section Analogi Gambar: soal dibuat generator, sesinya juga disimpan ke localStorage.
+  const [analogi, setAnalogi] = useState<SesiAnalogi | null>(sesiAnalogi.muatSesi);
+  const [analogiLayar, setAnalogiLayar] = useState<null | "sesi" | { petunjuk: ModeAnalogi }>(null);
+  const [simpanAnalogi, setSimpanAnalogi] = useState<{ ok: boolean; pada: number } | null>(null);
+  useEffect(() => {
+    const ok = sesiAnalogi.simpanSesi(analogi);
+    if (analogi) setSimpanAnalogi({ ok, pada: Date.now() });
+  }, [analogi]);
+  const ubahAnalogi = useCallback((f: (x: SesiAnalogi) => SesiAnalogi) => setAnalogi((x) => (x ? f(x) : x)), []);
+  const gantiAnalogi = useCallback((x: SesiAnalogi) => setAnalogi(x), []);
+  const keMenuDariAnalogi = useCallback(() => setAnalogiLayar(null), []);
+
+  const mulaiAnalogi = (mode: ModeAnalogi) => {
+    if (analogi && !analogi.selesai && analogi.pilihan.some((p) => p !== null)) {
+      const pesan = "Ada sesi Analogi Gambar yang belum selesai beserta jawabannya.\n\n" +
+        "Mulai sesi baru dan hapus jawaban tersimpan itu?";
+      if (!window.confirm(pesan)) return;
+    }
+    setAnalogiLayar({ petunjuk: mode });
+  };
 
   const ubahBca = useCallback((f: (x: SesiBca) => SesiBca) => setBca((x) => (x ? f(x) : x)), []);
   const gantiBca = useCallback((x: SesiBca) => setBca(x), []);
@@ -83,6 +108,25 @@ export default function App() {
   const diSoal = layar === "latihan" || layar === "ujian";
   const terjawab = pilihan[indeks] !== null && pilihan[indeks] !== undefined;
 
+  if (analogiLayar === "sesi" && analogi) {
+    return <AnalogiGambar sesi={analogi} onUbah={ubahAnalogi} onGanti={gantiAnalogi} onMenu={keMenuDariAnalogi} statusSimpan={simpanAnalogi} />;
+  }
+  if (analogiLayar && analogiLayar !== "sesi") {
+    const mode = analogiLayar.petunjuk;
+    return (
+      <div className="app mode-latihan">
+        <main className="halaman">
+          <Kop eyebrow={"Petunjuk · " + sesiAnalogi.namaMode(mode)} judul="Analogi Gambar" skor={null} />
+          <PetunjukAnalogi
+            mode={mode}
+            onMulai={() => { setAnalogi(sesiAnalogi.sesiBaru(mode)); setAnalogiLayar("sesi"); }}
+            onMenu={keMenuDariAnalogi}
+          />
+        </main>
+      </div>
+    );
+  }
+
   if (bcaAktif && bca) {
     return <BcaFinance sesi={bca} onUbah={ubahBca} onGanti={gantiBca} onMenu={keMenuDariBca} statusSimpan={statusSimpan} />;
   }
@@ -134,6 +178,9 @@ export default function App() {
             bcaTersimpan={bca}
             onBca={mulaiBca}
             onLanjutBca={() => setBcaAktif(true)}
+            analogiTersimpan={analogi}
+            onAnalogi={mulaiAnalogi}
+            onLanjutAnalogi={() => setAnalogiLayar("sesi")}
           />
         )}
 

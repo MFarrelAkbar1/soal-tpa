@@ -5,6 +5,7 @@
 // Section BCA Finance (esai): caseId harus ada, tiap kasus punya soal dan teks,
 // answer null atau berisi contoh jawaban yang tidak kosong, baris tabel selebar kolomnya,
 // dan paket ujian tidak meminta kasus lebih banyak dari yang tersedia.
+// Analogi Gambar: komposisi soal per tingkat dan durasi ujian di src/config/analogi.ts.
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -12,6 +13,7 @@ import { bankSoal } from "../src/data/index.ts";
 import { PAKET } from "../src/config/paket.ts";
 import { kasusBca, soalBca } from "../src/bca/data/index.ts";
 import { PAKET_BCA } from "../src/config/paket-bca.ts";
+import { ANALOGI } from "../src/config/analogi.ts";
 
 const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 const galat: string[] = [];
@@ -77,6 +79,17 @@ for (const p of PAKET_BCA) {
   if (p.jumlahKasus < 1 || p.jumlahKasus > kolamUjian) {
     galat.push(`paket BCA ${p.id}: jumlahKasus ${p.jumlahKasus}, tersedia ${kolamUjian}`);
   }
+}
+
+// Analogi Gambar: soal dibuat generator (diuji di scripts/test-analogi.ts); di sini cukup konfigurasinya.
+for (const [mode, { komposisi }] of Object.entries(ANALOGI)) {
+  const n = Object.values(komposisi);
+  if (n.some((x) => !Number.isInteger(x) || x < 0) || n.reduce((a, b) => a + b, 0) < 1) {
+    galat.push(`analogi ${mode}: komposisi soal tidak sah (${JSON.stringify(komposisi)})`);
+  }
+}
+if (!Number.isInteger(ANALOGI.ujian.detik) || ANALOGI.ujian.detik < 60) {
+  galat.push(`analogi ujian: durasi ${ANALOGI.ujian.detik} detik, minimal 60`);
 }
 
 if (galat.length) {

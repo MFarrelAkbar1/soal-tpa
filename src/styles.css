@@ -32,6 +32,8 @@
   --bad-wash: #FCEBE1;
   --overlay: rgba(20, 22, 26, 0.45);
   --img-plate: #FFFFFF;
+  --fig-ink: #1F2A37; /* garis & isi hitam gambar Analogi Gambar, selalu di atas --img-plate */
+  --fig-faint: #8F8574;
   --shadow-1: 0 1px 2px rgba(31, 42, 55, 0.06), 0 2px 8px rgba(31, 42, 55, 0.05);
   --shadow-2: 0 2px 6px rgba(31, 42, 55, 0.06), 0 16px 40px -12px rgba(31, 42, 55, 0.22);
 }
@@ -60,6 +62,8 @@
   --bad-wash: #3A2316;
   --overlay: rgba(0, 0, 0, 0.6);
   --img-plate: #F4F1EA;
+  --fig-ink: #1F2A37;
+  --fig-faint: #8F8574;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-2: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
 }
@@ -481,6 +485,77 @@
   .grid-mode { display: grid; gap: 10px; grid-template-columns: 1fr; }
   @media (min-width: 40rem) { .grid-mode { grid-template-columns: repeat(3, 1fr); } }
 
+  /* ---------- analogi gambar ---------- */
+  .kartu-section.analogi { border-color: var(--accent); }
+  @media (min-width: 40rem) { .kartu-section.analogi { grid-column: 1 / -1; } }
+  .kartu-section.analogi .ks-ikon { background: var(--accent-wash); border-color: transparent; }
+  @media (min-width: 40rem) { .grid-mode.dua { grid-template-columns: repeat(2, 1fr); } }
+
+  .figur { display: block; width: 100%; height: auto; aspect-ratio: 1; }
+  .fg-bangun { stroke: var(--fig-ink); stroke-linejoin: round; }
+  .fg-kosong { fill: var(--img-plate); }
+  .fg-hitam { fill: var(--fig-ink); }
+  .fg-arsir { stroke: var(--fig-ink); stroke-width: 1.6; }
+  .fg-titik { fill: var(--fig-ink); }
+
+  .ag-plate {
+    display: block; padding: 4px; border-radius: var(--radius-sm);
+    background: var(--img-plate); border: 1px solid var(--line);
+  }
+  .ag-baris { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 28px; margin: 0 0 22px; }
+  .ag-pasang { display: flex; align-items: flex-end; gap: 6px; }
+  .ag-sel { margin: 0; width: 76px; text-align: center; }
+  @media (min-width: 30rem) { .ag-sel { width: 92px; } }
+  .ag-huruf { font-family: var(--font-mono); font-weight: 600; font-size: 14px; color: var(--ink-soft); margin-bottom: 4px; }
+  .ag-panah { display: flex; align-items: center; height: 76px; color: var(--ink-faint); }
+  @media (min-width: 30rem) { .ag-panah { height: 92px; } }
+  .ag-tanya {
+    display: flex; align-items: center; justify-content: center; aspect-ratio: 1;
+    font-family: var(--font-mono); font-size: 28px; font-weight: 600; color: var(--fig-faint);
+    border: 2px dashed var(--fig-faint); border-radius: 6px;
+  }
+
+  .ag-opsi { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (min-width: 30rem) { .ag-opsi { grid-template-columns: repeat(5, 1fr); } }
+  .ag-opsi.kecil { grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 30rem; margin: 0 0 14px; }
+  .ag-pilih {
+    display: flex; flex-direction: column; align-items: stretch; gap: 6px; width: 100%;
+    padding: 8px; font: inherit; color: inherit; text-align: center;
+    background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: var(--radius-md);
+    box-shadow: 0 2px 0 var(--line);
+    transition: border-color .15s ease, background-color .15s ease, transform .1s ease;
+  }
+  .ag-opsi.kecil .ag-pilih { padding: 4px; gap: 3px; border-radius: var(--radius-sm); box-shadow: none; }
+  .ag-pilih:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-wash); }
+  .ag-pilih:active:not(:disabled) { transform: translateY(1px); }
+  .ag-pilih:disabled { cursor: default; }
+  .ag-nomor {
+    display: inline-flex; align-items: center; justify-content: center; gap: 3px; align-self: center;
+    min-width: 30px; height: 26px; padding: 0 8px; border-radius: 99px;
+    font-family: var(--font-mono); font-weight: 600; font-size: 14px;
+    border: 1.5px solid var(--line-strong); color: var(--ink);
+  }
+  .ag-opsi.kecil .ag-nomor { height: 20px; min-width: 22px; padding: 0 5px; font-size: 12px; border-width: 1px; }
+  .ag-pilih.dipilih { border-color: var(--accent); background: var(--accent-wash); }
+  .ag-pilih.dipilih .ag-nomor { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .ag-pilih.benar { border-color: var(--ok); background: var(--ok-wash); box-shadow: 0 2px 0 var(--ok); }
+  .ag-pilih.benar .ag-nomor { background: var(--ok); border-color: var(--ok); color: var(--surface); }
+  .ag-pilih.salah { border-color: var(--bad); background: var(--bad-wash); box-shadow: 0 2px 0 var(--bad); }
+  .ag-pilih.salah .ag-nomor { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+  /* alas gambar tidak ikut diredupkan supaya bangunnya tetap terbaca di mode gelap */
+  .ag-pilih.redup { border-color: var(--line); box-shadow: none; }
+  .ag-pilih.redup .ag-nomor { opacity: .6; }
+  .ag-catatan { margin-top: 8px; font-size: 14.5px; color: var(--ink-soft); }
+
+  .ag-petunjuk { display: flex; flex-direction: column; gap: 14px; }
+  .ag-petunjuk .kop-eyebrow { margin-bottom: 8px; text-transform: uppercase; letter-spacing: .04em; }
+  .ag-label-contoh { margin: 0 0 8px; font-weight: 700; font-size: 14px; color: var(--accent); }
+  .ag-info { padding: 20px; }
+  @media (min-width: 30rem) { .ag-info { padding: 28px; } }
+  .ag-daftar { margin: 0 0 14px; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+  .ag-ket { margin: 0 0 14px; color: var(--ink-soft); font-size: 15px; }
+  .ag-info .ks-stat { margin-bottom: 14px; }
+
   /* ---------- hasil pilihan ganda ---------- */
   .hasil { padding: 22px; }
   @media (min-width: 30rem) { .hasil { padding: 30px; } }
@@ -699,7 +774,9 @@
 
 .transisi-soal { animation: masuk-soal .2s ease-out; }
 .mode-latihan .opsi.benar,
-.mode-latihan .opsi.salah { animation: pantul .18s ease-out; }
+.mode-latihan .opsi.salah,
+.mode-latihan .ag-pilih.benar,
+.mode-latihan .ag-pilih.salah { animation: pantul .18s ease-out; }
 
 /* Mode Ujian: tenang, semua animasi/transisi mati kecuali transisi pindah soal */
 .tenang *, .tenang *::before, .tenang *::after { animation: none !important; transition: none !important; }

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "validate": "tsx scripts/validate-data.ts",
-    "build": "npm run validate && tsc -b && vite build",
+    "test": "tsx scripts/test-analogi.ts",
+    "build": "npm run validate && npm test && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

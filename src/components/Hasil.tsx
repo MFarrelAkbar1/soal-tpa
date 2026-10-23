@@ -22,7 +22,7 @@ function CincinSkor({ benar, total }: { benar: number; total: number }) {
   );
 }
 
-function Skor({ benar, total }: { benar: number; total: number }) {
+export function Skor({ benar, total }: { benar: number; total: number }) {
   const persen = total ? Math.round((benar / total) * 100) : 0;
   return (
     <div className="skor-blok">
@@ -35,10 +35,10 @@ function Skor({ benar, total }: { benar: number; total: number }) {
   );
 }
 
-function Grafik({ rekap }: { rekap: Rekap }) {
+export function Grafik({ rekap, judul = "Per kategori" }: { rekap: Rekap; judul?: string }) {
   return (
     <section className="grafik" aria-labelledby="judul-grafik">
-      <h3 className="grafik-judul" id="judul-grafik">Per kategori</h3>
+      <h3 className="grafik-judul" id="judul-grafik">{judul}</h3>
       <ul className="grafik-list">
         {Object.keys(rekap).map((kat) => {
           const r = rekap[kat];

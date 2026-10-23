@@ -3,6 +3,10 @@ import type { ModeBca, SesiBca } from "../bca/sesi";
 import { namaMode } from "../bca/sesi";
 import { kasusBca, soalBca } from "../bca/data";
 import { PAKET_BCA } from "../config/paket-bca";
+import type { ModeAnalogi, SesiAnalogi } from "../analogi/sesi";
+import { namaMode as namaModeAnalogi } from "../analogi/sesi";
+import { ANALOGI } from "../config/analogi";
+import { SEMUA_TINGKAT } from "../analogi/generator";
 import { Ikon } from "./Ikon";
 
 interface Props {
@@ -13,6 +17,9 @@ interface Props {
   bcaTersimpan: SesiBca | null;
   onBca: (mode: ModeBca) => void;
   onLanjutBca: () => void;
+  analogiTersimpan: SesiAnalogi | null;
+  onAnalogi: (mode: ModeAnalogi) => void;
+  onLanjutAnalogi: () => void;
 }
 
 const SINGKATAN: Record<Section, string> = {
@@ -53,14 +60,66 @@ function KartuSection({ p, bank, onUjian }: { p: PaketUjian; bank: Soal[]; onUji
   );
 }
 
-export function Menu({ bank, paket, onLatihan, onUjian, bcaTersimpan, onBca, onLanjutBca }: Props) {
+function KartuAnalogi({ tersimpan, onMulai, onLanjut }: { tersimpan: SesiAnalogi | null; onMulai: (m: ModeAnalogi) => void; onLanjut: () => void }) {
+  const { komposisi, detik } = ANALOGI.ujian;
+  const jumlahUjian = SEMUA_TINGKAT.reduce((n, t) => n + komposisi[t], 0);
+  const jumlahLatihan = SEMUA_TINGKAT.reduce((n, t) => n + ANALOGI.latihan.komposisi[t], 0);
+  const dijawab = tersimpan ? tersimpan.pilihan.filter((p) => p !== null).length : 0;
+  return (
+    <article className="kartu kartu-section analogi">
+      <div className="ks-kepala">
+        <span className="ks-ikon" aria-hidden="true">AG</span>
+        <div>
+          <h3 className="ks-nama">Analogi Gambar</h3>
+          <p className="ks-ket">A diubah menjadi B, maka C diubah menjadi apa? Soal bergambar dibuat baru setiap attempt.</p>
+        </div>
+      </div>
+      <ul className="ks-stat" aria-label="Ringkasan">
+        <li><Ikon nama="ulang" />Soal baru tiap attempt</li>
+        <li><Ikon nama="grid" />Ujian {jumlahUjian} soal</li>
+        <li><Ikon nama="jam" />{menit(detik)}</li>
+      </ul>
+      <div className="ks-aksi">
+        {tersimpan && (
+          <button type="button" className="pilihan-mode lanjut" onClick={onLanjut}>
+            <span className="pm-teks">
+              <span className="pm-nama">{tersimpan.selesai ? "Buka hasil terakhir" : "Lanjutkan sesi tersimpan"}</span>
+              <span className="pm-ket">{namaModeAnalogi(tersimpan.mode)} · {dijawab}/{tersimpan.soal.length} terjawab</span>
+            </span>
+            <Ikon nama="panah" />
+          </button>
+        )}
+        <div className="grid-mode dua">
+          <button type="button" className="pilihan-mode" onClick={() => onMulai("latihan")}>
+            <span className="pm-teks">
+              <span className="pm-nama">Mode Latihan</span>
+              <span className="pm-ket">{jumlahLatihan} soal · bebas waktu · pembahasan langsung</span>
+            </span>
+            <Ikon nama="panah" />
+          </button>
+          <button type="button" className="pilihan-mode" onClick={() => onMulai("ujian")}>
+            <span className="pm-teks">
+              <span className="pm-nama">Mode Ujian</span>
+              <span className="pm-ket">
+                {komposisi.mudah} mudah, {komposisi.sedang} sedang, {komposisi.sulit} sulit · {menit(detik)}
+              </span>
+            </span>
+            <Ikon nama="panah" />
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export function Menu({ bank, paket, onLatihan, onUjian, bcaTersimpan, onBca, onLanjutBca, analogiTersimpan, onAnalogi, onLanjutAnalogi }: Props) {
   const kolamKasus = kasusBca.filter((k) => k.ujian).length;
   return (
     <div>
       <section className="hero">
         <h2 className="hero-judul">Mau latihan apa hari ini?</h2>
         <p className="hero-sub">
-          {bank.length} soal pilihan ganda dari tiga bagian TPA, ditambah {soalBca.length} studi kasus esai BCA Finance.
+          {bank.length} soal pilihan ganda dari tiga bagian TPA, soal Analogi Gambar yang dibuat baru tiap attempt, dan {soalBca.length} studi kasus esai BCA Finance.
         </p>
       </section>
 
@@ -78,6 +137,8 @@ export function Menu({ bank, paket, onLatihan, onUjian, bcaTersimpan, onBca, onL
       <h2 className="judul-bagian">Mode Ujian per section</h2>
       <div className="grid-section">
         {paket.map((p) => <KartuSection key={p.id} p={p} bank={bank} onUjian={onUjian} />)}
+
+        <KartuAnalogi tersimpan={analogiTersimpan} onMulai={onAnalogi} onLanjut={onLanjutAnalogi} />
 
         <article className="kartu kartu-section bca">
           <div className="ks-kepala">
