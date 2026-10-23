@@ -56,3 +56,29 @@ export interface PaketBca {
   jumlahKasus: number;
   detik: number;
 }
+
+// ---------- Psikotes dari "Jawaban BCA Finance Update.pdf" ----------
+
+// TIU 5: analogi gambar asli. Gambar dipotong dari PDF ke public/bca-tiu5/.
+export interface SoalTiu5 {
+  id: string;
+  nomor: number; // 1–30, urutan sesuai PDF
+  kunci: number; // 1–5, dibaca dari lingkaran di halaman 4–5
+  pembahasan: string; // dibuat sendiri; PDF tidak memuat pembahasan
+  aturanJelas: boolean; // false bila aturan A→B tidak bisa dipastikan dari gambar
+}
+
+// PAPI Kostik: pilih pernyataan a atau b. Tidak ada jawaban benar/salah.
+export interface PernyataanPapi {
+  id: string;
+  nomor: number;
+  a: string;
+  b: string;
+}
+
+// CBI: jawab B (Benar) atau S (Salah). Tidak ada kunci.
+export interface PernyataanCbi {
+  id: string;
+  nomor: number;
+  teks: string;
+}

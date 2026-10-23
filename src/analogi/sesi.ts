@@ -1,19 +1,37 @@
 import type { Rekap } from "../types";
-import type { SoalAnalogi } from "./generator";
 import { JUMLAH_OPSI, NAMA_TINGKAT, SEMUA_TINGKAT, buatPaket } from "./generator";
 import { benihAcak, buatAcak } from "./acak";
+import type { SoalTampil } from "./tampil";
+import { dariGenerator, dariTiu5 } from "./tampil";
 import { ANALOGI } from "../config/analogi";
+import { PSIKOTES } from "../config/psikotes";
+import { SOAL_TIU5 } from "../bca/data/tiu5";
 import { tambahRekap } from "../lib/util";
 
-// Sesi Analogi Gambar. Soal dibuat baru setiap sesi dimulai, lalu seluruh sesi
-// (soal, jawaban, waktu akhir) disimpan ke localStorage supaya tahan refresh.
+// Sesi Analogi Gambar. Soal generator dibuat baru setiap sesi dimulai; soal asli TIU 5
+// selalu 30 soal sesuai urutan PDF. Seluruh sesi (soal, jawaban, waktu akhir) disimpan
+// ke localStorage supaya tahan refresh.
 
-export type ModeAnalogi = "latihan" | "ujian";
+export type ModeAnalogi = "latihan" | "ujian" | "tiu5-latihan" | "tiu5-ujian";
+
+export function modeTiu5(mode: ModeAnalogi): boolean {
+  return mode === "tiu5-latihan" || mode === "tiu5-ujian";
+}
+
+export function modeLatihan(mode: ModeAnalogi): boolean {
+  return mode === "latihan" || mode === "tiu5-latihan";
+}
+
+export function durasiDetik(mode: ModeAnalogi): number | null {
+  if (mode === "ujian") return ANALOGI.ujian.detik;
+  if (mode === "tiu5-ujian") return PSIKOTES.tiu5.detik;
+  return null;
+}
 
 export interface SesiAnalogi {
-  versi: 1;
+  versi: 2;
   mode: ModeAnalogi;
-  soal: SoalAnalogi[];
+  soal: SoalTampil[];
   indeks: number;
   pilihan: (number | null)[];
   mulai: number; // epoch ms
@@ -21,21 +39,27 @@ export interface SesiAnalogi {
   selesai: { pada: number; habisWaktu: boolean } | null;
 }
 
-const KUNCI = "soal-tpa:analogi-sesi:v1";
+const KUNCI = "soal-tpa:analogi-sesi:v2";
 
-export function sesiBaru(mode: ModeAnalogi): SesiAnalogi {
+function buatSoal(mode: ModeAnalogi): SoalTampil[] {
+  if (modeTiu5(mode)) return SOAL_TIU5.map(dariTiu5);
   const benih = benihAcak();
   const komposisi = mode === "ujian" ? ANALOGI.ujian.komposisi : ANALOGI.latihan.komposisi;
-  const soal = buatPaket(komposisi, buatAcak(benih), "ag-" + benih.toString(36), mode === "ujian");
+  return buatPaket(komposisi, buatAcak(benih), "ag-" + benih.toString(36), mode === "ujian").map(dariGenerator);
+}
+
+export function sesiBaru(mode: ModeAnalogi): SesiAnalogi {
+  const soal = buatSoal(mode);
   const sekarang = Date.now();
+  const detik = durasiDetik(mode);
   return {
-    versi: 1,
+    versi: 2,
     mode,
     soal,
     indeks: 0,
     pilihan: soal.map(() => null),
     mulai: sekarang,
-    berakhir: mode === "ujian" ? sekarang + ANALOGI.ujian.detik * 1000 : null,
+    berakhir: detik === null ? null : sekarang + detik * 1000,
     selesai: null,
   };
 }
@@ -49,7 +73,7 @@ export function selesaikan(s: SesiAnalogi, habisWaktu: boolean): SesiAnalogi {
 export function jawab(s: SesiAnalogi, i: number): SesiAnalogi {
   if (s.selesai || i < 0 || i >= JUMLAH_OPSI) return s;
   // mode latihan: jawaban pertama langsung dikunci karena kunci & pembahasan sudah tampil
-  if (s.mode === "latihan" && s.pilihan[s.indeks] !== null) return s;
+  if (modeLatihan(s.mode) && s.pilihan[s.indeks] !== null) return s;
   const pilihan = s.pilihan.slice();
   pilihan[s.indeks] = i;
   return { ...s, pilihan };
@@ -61,16 +85,17 @@ export function keSoal(s: SesiAnalogi, i: number): SesiAnalogi {
 
 export function hitung(s: SesiAnalogi): { benar: number; dijawab: number; rekap: Rekap } {
   let benar = 0, dijawab = 0;
-  // rekap diisi berurutan Mudah → Sedang → Sulit agar grafik tampil urut
+  // rekap diisi berurutan Mudah → Sedang → Sulit (lalu kelompok lain) agar grafik tampil urut
+  const urutan = [...SEMUA_TINGKAT.map((t) => NAMA_TINGKAT[t]), ...new Set(s.soal.map((x) => x.kelompok))];
   let rekap: Rekap = {};
-  for (const t of SEMUA_TINGKAT) {
+  for (const k of new Set(urutan)) {
     s.soal.forEach((soal, i) => {
-      if (soal.tingkat !== t) return;
+      if (soal.kelompok !== k) return;
       const p = s.pilihan[i];
       const tepat = p === soal.kunci;
       if (p !== null) dijawab++;
       if (tepat) benar++;
-      rekap = tambahRekap(rekap, NAMA_TINGKAT[t], tepat);
+      rekap = tambahRekap(rekap, k, tepat);
     });
   }
   return { benar, dijawab, rekap };
@@ -86,7 +111,7 @@ export function muatSesi(): SesiAnalogi | null {
   if (!mentah) return null;
   try {
     const s = JSON.parse(mentah) as SesiAnalogi;
-    if (s.versi !== 1 || (s.mode !== "latihan" && s.mode !== "ujian")) return null;
+    if (s.versi !== 2 || !["latihan", "ujian", "tiu5-latihan", "tiu5-ujian"].includes(s.mode)) return null;
     if (!Array.isArray(s.soal) || s.soal.length === 0 || !Array.isArray(s.pilihan)) return null;
     if (s.pilihan.length !== s.soal.length) return null;
     if (!s.soal.every((x) => Array.isArray(x.opsi) && x.opsi.length === JUMLAH_OPSI && x.a && x.b && x.c)) return null;
@@ -114,5 +139,10 @@ export function sisaDetik(s: SesiAnalogi, sekarang: number): number | null {
 }
 
 export function namaMode(mode: ModeAnalogi): string {
-  return mode === "latihan" ? "Mode Latihan" : "Mode Ujian";
+  switch (mode) {
+    case "latihan": return "Mode Latihan";
+    case "ujian": return "Mode Ujian";
+    case "tiu5-latihan": return "Soal asli TIU 5 · Latihan";
+    case "tiu5-ujian": return "Soal asli TIU 5 · Ujian";
+  }
 }

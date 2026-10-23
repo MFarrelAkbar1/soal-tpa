@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { bankSoal } from "./data";
 import { PAKET } from "./config/paket";
 import type { PaketUjian } from "./types";
@@ -21,6 +21,9 @@ import { AnalogiGambar } from "./components/analogi/AnalogiGambar";
 import { PetunjukAnalogi } from "./components/analogi/PetunjukAnalogi";
 import type { ModeAnalogi, SesiAnalogi } from "./analogi/sesi";
 import * as sesiAnalogi from "./analogi/sesi";
+import { Kuesioner, PetunjukKuesioner } from "./components/bca/Kuesioner";
+import type { SesiKuesioner, TesKuesioner } from "./bca/kuesioner";
+import * as kuesioner from "./bca/kuesioner";
 
 export default function App() {
   const [s, dispatch] = useReducer(sesiReducer, sesiAwal);
@@ -55,6 +58,39 @@ export default function App() {
       if (!window.confirm(pesan)) return;
     }
     setAnalogiLayar({ petunjuk: mode });
+  };
+
+  // Psikotes BCA tanpa skor (PAPI Kostik, CBI): satu sesi tersimpan per tes.
+  const [kq, setKq] = useState<Record<TesKuesioner, SesiKuesioner | null>>(() => ({
+    papi: kuesioner.muatSesi("papi"),
+    cbi: kuesioner.muatSesi("cbi"),
+  }));
+  const [kqLayar, setKqLayar] = useState<null | { tes: TesKuesioner; petunjuk: boolean }>(null);
+  const [simpanKq, setSimpanKq] = useState<{ ok: boolean; pada: number } | null>(null);
+  useEffect(() => {
+    const ok = kuesioner.simpanSesi("papi", kq.papi) && kuesioner.simpanSesi("cbi", kq.cbi);
+    if (kq.papi || kq.cbi) setSimpanKq({ ok, pada: Date.now() });
+  }, [kq]);
+  const tesAktif = kqLayar?.tes ?? "papi";
+  const kqLayarRef = useRef(kqLayar);
+  kqLayarRef.current = kqLayar;
+  const ubahKq = useCallback((f: (x: SesiKuesioner) => SesiKuesioner) => {
+    setKq((semua) => {
+      const tes = kqLayarRef.current?.tes;
+      if (!tes || !semua[tes]) return semua;
+      return { ...semua, [tes]: f(semua[tes]!) };
+    });
+  }, []);
+  const keMenuDariKq = useCallback(() => setKqLayar(null), []);
+
+  const mulaiKuesioner = (tes: TesKuesioner) => {
+    const t = kq[tes];
+    if (t && !t.selesai && t.jawaban.some((j) => j !== null)) {
+      const pesan = "Ada sesi " + kuesioner.INFO_TES[tes].nama + " yang belum selesai beserta jawabannya.\n\n" +
+        "Mulai sesi baru dan hapus jawaban tersimpan itu?";
+      if (!window.confirm(pesan)) return;
+    }
+    setKqLayar({ tes, petunjuk: true });
   };
 
   const ubahBca = useCallback((f: (x: SesiBca) => SesiBca) => setBca((x) => (x ? f(x) : x)), []);
@@ -108,6 +144,35 @@ export default function App() {
   const diSoal = layar === "latihan" || layar === "ujian";
   const terjawab = pilihan[indeks] !== null && pilihan[indeks] !== undefined;
 
+  if (kqLayar && !kqLayar.petunjuk && kq[kqLayar.tes]) {
+    return (
+      <Kuesioner
+        sesi={kq[kqLayar.tes]!}
+        onUbah={ubahKq}
+        onUlangi={() => setKqLayar({ tes: kqLayar.tes, petunjuk: true })}
+        onMenu={keMenuDariKq}
+        statusSimpan={simpanKq}
+      />
+    );
+  }
+  if (kqLayar && kqLayar.petunjuk) {
+    return (
+      <div className="app mode-latihan">
+        <main className="halaman">
+          <Kop eyebrow="BCA Finance · Petunjuk" judul={kuesioner.INFO_TES[tesAktif].nama} skor={null} />
+          <PetunjukKuesioner
+            tes={tesAktif}
+            onMulai={(batas) => {
+              setKq((semua) => ({ ...semua, [tesAktif]: kuesioner.sesiBaru(tesAktif, batas) }));
+              setKqLayar({ tes: tesAktif, petunjuk: false });
+            }}
+            onMenu={keMenuDariKq}
+          />
+        </main>
+      </div>
+    );
+  }
+
   if (analogiLayar === "sesi" && analogi) {
     return <AnalogiGambar sesi={analogi} onUbah={ubahAnalogi} onGanti={gantiAnalogi} onMenu={keMenuDariAnalogi} statusSimpan={simpanAnalogi} />;
   }
@@ -116,7 +181,7 @@ export default function App() {
     return (
       <div className="app mode-latihan">
         <main className="halaman">
-          <Kop eyebrow={"Petunjuk · " + sesiAnalogi.namaMode(mode)} judul="Analogi Gambar" skor={null} />
+          <Kop eyebrow={"Petunjuk · " + sesiAnalogi.namaMode(mode)} judul={sesiAnalogi.modeTiu5(mode) ? "TIU 5 · Analogi Gambar" : "Analogi Gambar"} skor={null} />
           <PetunjukAnalogi
             mode={mode}
             onMulai={() => { setAnalogi(sesiAnalogi.sesiBaru(mode)); setAnalogiLayar("sesi"); }}
@@ -181,6 +246,9 @@ export default function App() {
             analogiTersimpan={analogi}
             onAnalogi={mulaiAnalogi}
             onLanjutAnalogi={() => setAnalogiLayar("sesi")}
+            kuesionerTersimpan={kq}
+            onKuesioner={mulaiKuesioner}
+            onLanjutKuesioner={(tes) => setKqLayar({ tes, petunjuk: false })}
           />
         )}
 

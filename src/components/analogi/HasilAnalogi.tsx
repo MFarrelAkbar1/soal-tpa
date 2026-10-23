@@ -1,12 +1,10 @@
 import { useState } from "react";
 import type { SesiAnalogi } from "../../analogi/sesi";
-import { hitung } from "../../analogi/sesi";
-import { NAMA_TINGKAT } from "../../analogi/generator";
+import { durasiDetik, hitung, modeTiu5 } from "../../analogi/sesi";
 import { formatWaktu, pad } from "../../lib/util";
-import { ANALOGI } from "../../config/analogi";
 import { Ikon } from "../Ikon";
 import { Grafik, Skor } from "../Hasil";
-import { BarisSoal, OpsiGambar } from "./LembarAnalogi";
+import { BarisSoal, OpsiGambar, Penjelasan } from "./LembarAnalogi";
 
 type Filter = "semua" | "salah" | "kosong";
 
@@ -59,7 +57,7 @@ function Pembahasan({ sesi }: { sesi: SesiAnalogi }) {
             <li className={"review-item " + status} key={s.id}>
               <div className="review-atas">
                 <span className="review-no">{pad(i + 1)}</span>
-                <span className="chip netral">{NAMA_TINGKAT[s.tingkat]}</span>
+                <span className="chip netral">{s.chip}</span>
                 {status === "tepat" && <span className="review-status ok"><Ikon nama="cek" ukuran={16} />Benar</span>}
                 {status === "meleset" && <span className="review-status no"><Ikon nama="silang" ukuran={16} />Salah</span>}
                 {status === "kosong" && <span className="review-status abu">Tidak dijawab</span>}
@@ -74,8 +72,8 @@ function Pembahasan({ sesi }: { sesi: SesiAnalogi }) {
                 <dt>Kunci</dt>
                 <dd className="ok">Gambar {s.kunci + 1}</dd>
               </dl>
-              <p className="review-penjelasan">{s.penjelasan}</p>
-              {status === "meleset" && jawabMu !== null && (
+              <Penjelasan soal={s} kelas="review-penjelasan" />
+              {status === "meleset" && jawabMu !== null && s.catatanOpsi && (
                 <p className="review-penjelasan ag-catatan">Gambar {jawabMu + 1}: {s.catatanOpsi[jawabMu]}</p>
               )}
             </li>
@@ -97,7 +95,7 @@ export function HasilAnalogi({ sesi, onUlangi, onMenu }: Props) {
   const total = sesi.soal.length;
   const kosong = sesi.pilihan.filter((x) => x === null).length;
   const terpakai = Math.round(((sesi.selesai?.pada ?? Date.now()) - sesi.mulai) / 1000);
-  const ujian = sesi.mode === "ujian";
+  const batas = durasiDetik(sesi.mode);
   return (
     <div className="kartu hasil">
       <Skor benar={benar} total={total} />
@@ -110,17 +108,17 @@ export function HasilAnalogi({ sesi, onUlangi, onMenu }: Props) {
         </div>
         <div className="fakta">
           <dt>Waktu terpakai</dt>
-          <dd className="mono">{formatWaktu(ujian ? Math.min(terpakai, ANALOGI.ujian.detik) : terpakai)}{ujian && " / " + formatWaktu(ANALOGI.ujian.detik)}</dd>
+          <dd className="mono">{formatWaktu(batas !== null ? Math.min(terpakai, batas) : terpakai)}{batas !== null && " / " + formatWaktu(batas)}</dd>
         </div>
         <div className="fakta">
           <dt>Tidak dijawab</dt>
           <dd className={kosong > 0 ? "tegas" : undefined}>{kosong} dari {total} soal</dd>
         </div>
       </dl>
-      <Grafik rekap={rekap} judul="Per tingkat kesulitan" />
+      <Grafik rekap={rekap} judul={modeTiu5(sesi.mode) ? "Per kejelasan aturan (menurut pembahasan buatan sendiri)" : "Per tingkat kesulitan"} />
       <Pembahasan sesi={sesi} />
       <div className="hasil-aksi">
-        <button className="tombol" type="button" onClick={onUlangi}><Ikon nama="ulang" ukuran={18} />Ulangi dengan soal baru</button>
+        <button className="tombol" type="button" onClick={onUlangi}><Ikon nama="ulang" ukuran={18} />{modeTiu5(sesi.mode) ? "Ulangi dari awal" : "Ulangi dengan soal baru"}</button>
         <button className="tombol sekunder" type="button" onClick={onMenu}><Ikon nama="rumah" ukuran={18} />Kembali ke menu</button>
       </div>
     </div>

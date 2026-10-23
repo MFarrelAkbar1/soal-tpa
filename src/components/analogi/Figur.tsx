@@ -1,10 +1,20 @@
 import { useId } from "react";
 import type { Gambar, Primitif } from "../../analogi/gambar";
 import { deskripsi, primitif } from "../../analogi/gambar";
+import type { Visual } from "../../analogi/tampil";
+import { srcGambar } from "../../lib/util";
 
-// Satu gambar Analogi Gambar sebagai SVG inline. Warnanya dari token --fig-ink di atas alas
-// --img-plate (selalu terang), jadi tetap terbaca di mode gelap.
-export function Figur({ g, label }: { g: Gambar; label?: string }) {
+// Satu gambar Analogi Gambar: SVG inline dari generator, atau PNG potongan PDF (soal asli).
+// Keduanya diletakkan di alas --img-plate yang selalu terang, jadi tetap terbaca di mode gelap
+// tanpa diinversi.
+export function Figur({ g, label }: { g: Visual; label?: string }) {
+  if ("src" in g) {
+    return <img className="figur" src={srcGambar(g.src)} alt={label ?? ""} loading="lazy" draggable={false} />;
+  }
+  return <FigurSvg g={g} label={label} />;
+}
+
+function FigurSvg({ g, label }: { g: Gambar; label?: string }) {
   const id = "arsir-" + useId().replace(/[^a-zA-Z0-9]/g, "");
   const daftar = primitif(g);
   const adaArsir = daftar.some((p) => p.jenis !== "titik" && p.isi === "arsir");

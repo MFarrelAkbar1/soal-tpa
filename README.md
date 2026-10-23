@@ -50,7 +50,22 @@ npm test          # tes generator Analogi Gambar (1000 soal harus lolos validasi
     mana pun) yang menunjuk pengecoh. Soal yang ambigu dibuang lalu dibuat ulang.
   - Penjelasan dan alasan tiap pengecoh dibuat otomatis dari aturannya.
   - Sesi (soal, jawaban, timer) tersimpan di localStorage; shortcut 1–5.
-- **BCA Finance** (esai, tidak dinilai otomatis):
+- **BCA Finance · psikotes** (dari "Jawaban BCA Finance Update.pdf", ditampilkan
+  sebagai sub-bagian grup BCA Finance di menu):
+  - **TIU 5**: 30 soal analogi gambar asli, urutan sesuai PDF. Gambar dipotong
+    dari scan PDF ke `public/bca-tiu5/` (8 PNG per soal, watermark dibersihkan)
+    oleh `scripts/potong-tiu5.py`. Kunci dari PDF; pembahasan ditulis sendiri dan
+    diberi label "Pembahasan dibuat sendiri, bukan dari sumber". Mode Latihan
+    (pembahasan langsung) dan Mode Ujian (10 menit, `src/config/psikotes.ts`).
+    Juga tersedia sebagai pilihan "Soal asli TIU 5" di section Analogi Gambar.
+  - **PAPI Kostik**: 90 pasang pernyataan a/b, disalin persis dari PDF.
+  - **CBI**: 140 pernyataan Benar/Salah, disalin persis dari PDF; kata "tidak"
+    disorot sesuai tips PDF.
+  - PAPI dan CBI tidak punya kunci maupun skor (PDF tidak memuat aturan
+    penilaiannya). Petunjuk dan tips dari PDF tampil sebelum mulai; satu
+    pernyataan per layar, shortcut A/B atau B/S, autosave, batas waktu opsional
+    untuk PAPI, dan ringkasan akhir dengan tombol salin/unduh daftar jawaban.
+- **BCA Finance · studi kasus** (esai, tidak dinilai otomatis):
   - Mode Latihan: semua soal berurutan, teks kasus di atas pertanyaan, satu
     kotak esai bebas, contoh jawaban bisa dibuka (versi Singkat/Lengkap bergantian).
   - Mode Ujian: *Latihan cepat* (1 kasus acak, 30 menit) dan *Simulasi penuh*
@@ -80,13 +95,15 @@ npm test          # tes generator Analogi Gambar (1000 soal harus lolos validasi
 │   └── robots.txt              # melarang semua crawler mengindeks situs
 ├── scripts/validate-data.ts    # dijalankan otomatis saat build
 ├── scripts/test-analogi.ts     # tes generator Analogi Gambar, juga dijalankan saat build
+├── scripts/potong-tiu5.py      # potong gambar soal TIU 5 dari PDF ke public/bca-tiu5/
 └── src/
     ├── types.ts                # tipe Soal & PaketUjian
     ├── config/paket.ts         # paket Mode Ujian (section, jumlah soal, durasi)
     ├── config/paket-bca.ts     # paket ujian BCA Finance + format 5 slide
     ├── config/analogi.ts       # komposisi soal & durasi Analogi Gambar
+    ├── config/psikotes.ts      # durasi TIU 5 & batas waktu opsional PAPI
     ├── analogi/                # model gambar, aturan, generator + validator, sesi
-    ├── bca/                    # tipe, data kasus/esai, panduan, sesi, ekspor BCA Finance
+    ├── bca/                    # tipe, data kasus/esai & psikotes (tiu5/papi/cbi), sesi, ekspor BCA Finance
     ├── data/                   # bank soal per section + index.ts
     ├── sesi.ts                 # state & reducer sesi latihan/ujian
     ├── hooks/useShortcut.ts    # shortcut keyboard

@@ -492,6 +492,8 @@
   @media (min-width: 40rem) { .grid-mode.dua { grid-template-columns: repeat(2, 1fr); } }
 
   .figur { display: block; width: 100%; height: auto; aspect-ratio: 1; }
+  /* PNG soal asli berlatar putih: multiply membuat putihnya menyatu dengan alas, garis hitam tetap */
+  img.figur { object-fit: contain; mix-blend-mode: multiply; user-select: none; }
   .fg-bangun { stroke: var(--fig-ink); stroke-linejoin: round; }
   .fg-kosong { fill: var(--img-plate); }
   .fg-hitam { fill: var(--fig-ink); }
@@ -555,6 +557,50 @@
   .ag-daftar { margin: 0 0 14px; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
   .ag-ket { margin: 0 0 14px; color: var(--ink-soft); font-size: 15px; }
   .ag-info .ks-stat { margin-bottom: 14px; }
+
+  .ag-label-sendiri {
+    display: inline-flex; align-items: center; gap: 6px; margin: 8px 0 4px;
+    font-size: 13px; font-weight: 700; color: var(--honey-ink);
+    background: var(--honey-wash); border-radius: 99px; padding: 3px 10px;
+  }
+
+  /* ---------- psikotes BCA: PAPI Kostik & CBI ---------- */
+  .kq-pernyataan {
+    margin: 0 0 20px; font-size: 20px; line-height: 1.55; font-weight: 650; letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+  }
+  @media (min-width: 30rem) { .kq-pernyataan { font-size: 22px; } }
+  .kq-pernyataan.kecil { font-size: 17px; margin-bottom: 8px; }
+  .sorot-tidak {
+    color: var(--honey-ink); background: var(--honey-wash);
+    font-weight: 800; padding: 0 3px; border-radius: 4px;
+    text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px;
+  }
+  .opsi.kq-contoh { cursor: default; }
+  .kq-jarak { margin-top: 12px; }
+  .kq-bs { display: grid; grid-template-columns: 1fr 1fr; }
+  .kq-opsi-timer {
+    display: flex; align-items: flex-start; gap: 12px; margin: 0 0 14px; padding: 12px 14px;
+    border: 1.5px solid var(--line-strong); border-radius: var(--radius-md); cursor: pointer; font-weight: 700;
+  }
+  .kq-opsi-timer input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex-shrink: 0; }
+  .kq-kabar { margin-top: 10px; }
+  .kq-nav-hp { width: 100%; margin-top: 14px; }
+  @media (min-width: 48rem) { .kq-nav-hp { display: none; } }
+  .kq-daftar { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .kq-daftar li {
+    display: grid; grid-template-columns: auto auto 1fr; gap: 10px; align-items: baseline;
+    padding: 8px 12px; border-radius: var(--radius-sm); background: var(--surface-2); font-size: 14.5px;
+  }
+  .kq-daftar li.kosong { color: var(--ink-soft); background: transparent; border: 1.5px dashed var(--line-strong); }
+  .kq-no { color: var(--ink-soft); font-size: 13px; }
+  .kq-jawab { font-weight: 600; min-width: 1.5em; color: var(--accent); }
+
+  /* ---------- menu: sub-bagian grup BCA Finance ---------- */
+  .bca-sub { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .bca-sub-kepala { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap; }
+  .bca-sub-nama { margin: 0; font-size: 15.5px; font-weight: 800; }
+  .bca-sub-ket { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
 
   /* ---------- hasil pilihan ganda ---------- */
   .hasil { padding: 22px; }

@@ -6,6 +6,8 @@
 // answer null atau berisi contoh jawaban yang tidak kosong, baris tabel selebar kolomnya,
 // dan paket ujian tidak meminta kasus lebih banyak dari yang tersedia.
 // Analogi Gambar: komposisi soal per tingkat dan durasi ujian di src/config/analogi.ts.
+// Psikotes BCA: TIU 5 tepat 30 soal bernomor 1–30 dengan kunci 1–5 dan 8 file gambar per soal,
+// PAPI Kostik 90 pasang (a dan b terisi), CBI 140 pernyataan; semua id unik dan nomor berurutan.
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -14,6 +16,10 @@ import { PAKET } from "../src/config/paket.ts";
 import { kasusBca, soalBca } from "../src/bca/data/index.ts";
 import { PAKET_BCA } from "../src/config/paket-bca.ts";
 import { ANALOGI } from "../src/config/analogi.ts";
+import { PSIKOTES } from "../src/config/psikotes.ts";
+import { BAGIAN_GAMBAR, SOAL_TIU5, gambarTiu5 } from "../src/bca/data/tiu5.ts";
+import { PERNYATAAN_PAPI } from "../src/bca/data/papi.ts";
+import { PERNYATAAN_CBI } from "../src/bca/data/cbi.ts";
 
 const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 const galat: string[] = [];
@@ -92,6 +98,37 @@ if (!Number.isInteger(ANALOGI.ujian.detik) || ANALOGI.ujian.detik < 60) {
   galat.push(`analogi ujian: durasi ${ANALOGI.ujian.detik} detik, minimal 60`);
 }
 
+// Psikotes BCA Finance
+function cekDaftar(nama: string, daftar: { id: string; nomor: number }[], harus: number) {
+  if (daftar.length !== harus) galat.push(`${nama}: ${daftar.length} butir, harus ${harus}`);
+  daftar.forEach((x, i) => {
+    if (!x.id) galat.push(`${nama} no. ${i + 1}: id kosong`);
+    else if (idTerpakai.has(x.id)) galat.push(`${nama} ${x.id}: id duplikat`);
+    idTerpakai.add(x.id);
+    if (x.nomor !== i + 1) galat.push(`${nama} ${x.id}: nomor ${x.nomor}, seharusnya ${i + 1} (urutan PDF)`);
+  });
+}
+
+cekDaftar("TIU 5", SOAL_TIU5, 30);
+for (const s of SOAL_TIU5) {
+  if (!Number.isInteger(s.kunci) || s.kunci < 1 || s.kunci > 5) galat.push(`TIU 5 ${s.id}: kunci ${s.kunci} di luar 1–5`);
+  if (!s.pembahasan.trim()) galat.push(`TIU 5 ${s.id}: pembahasan kosong`);
+  for (const b of BAGIAN_GAMBAR) {
+    const f = gambarTiu5(s.nomor, b);
+    if (!existsSync(path.join(publicDir, f))) galat.push(`TIU 5 ${s.id}: gambar tidak ditemukan: public/${f}`);
+  }
+}
+if (!Number.isInteger(PSIKOTES.tiu5.detik) || PSIKOTES.tiu5.detik < 60) galat.push(`TIU 5: durasi ${PSIKOTES.tiu5.detik} detik, minimal 60`);
+
+cekDaftar("PAPI", PERNYATAAN_PAPI, 90);
+for (const p of PERNYATAAN_PAPI) {
+  if (!p.a.trim() || !p.b.trim()) galat.push(`PAPI ${p.id}: pernyataan a/b kosong`);
+}
+cekDaftar("CBI", PERNYATAAN_CBI, 140);
+for (const p of PERNYATAAN_CBI) {
+  if (!p.teks.trim()) galat.push(`CBI ${p.id}: pernyataan kosong`);
+}
+
 if (galat.length) {
   console.error(`Validasi data GAGAL (${galat.length} masalah):`);
   for (const g of galat) console.error("  - " + g);
@@ -100,3 +137,5 @@ if (galat.length) {
 console.log(`Validasi data OK: ${bankSoal.length} soal, ${PAKET.length} paket ujian.`);
 console.log(`BCA Finance OK: ${soalBca.length} soal esai dari ${kasusBca.length} kasus, ` +
   `${soalBca.filter((s) => s.answer).length} dengan contoh jawaban, ${PAKET_BCA.length} paket ujian.`);
+console.log(`Psikotes BCA OK: TIU 5 ${SOAL_TIU5.length} soal (${SOAL_TIU5.length * BAGIAN_GAMBAR.length} gambar), ` +
+  `PAPI ${PERNYATAAN_PAPI.length} pasang, CBI ${PERNYATAAN_CBI.length} pernyataan.`);

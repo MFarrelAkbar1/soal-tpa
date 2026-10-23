@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SesiAnalogi } from "../../analogi/sesi";
-import { hitung, jawab, keSoal, namaMode, selesaikan, sesiBaru, sisaDetik } from "../../analogi/sesi";
-import { JUMLAH_OPSI, NAMA_TINGKAT } from "../../analogi/generator";
+import { hitung, jawab, keSoal, modeLatihan, modeTiu5, namaMode, selesaikan, sesiBaru, sisaDetik } from "../../analogi/sesi";
+import { JUMLAH_OPSI } from "../../analogi/generator";
 import { keAtas, pad } from "../../lib/util";
 import { Ikon } from "../Ikon";
 import { Kop, KopUjian } from "../Kop";
@@ -29,7 +29,8 @@ function jam(ms: number): string {
 export function AnalogiGambar({ sesi, onUbah, onGanti, onMenu, statusSimpan }: Props) {
   const [sekarang, setSekarang] = useState(() => Date.now());
   const [navBuka, setNavBuka] = useState(false);
-  const latihan = sesi.mode === "latihan";
+  const latihan = modeLatihan(sesi.mode);
+  const judul = modeTiu5(sesi.mode) ? "TIU 5 · Analogi Gambar" : "Analogi Gambar";
   const selesai = sesi.selesai !== null;
   const ujian = !latihan && !selesai;
   const tersimpan = statusSimpan?.ok !== false;
@@ -53,7 +54,7 @@ export function AnalogiGambar({ sesi, onUbah, onGanti, onMenu, statusSimpan }: P
   const ke = useCallback((i: number) => onUbah((s) => keSoal(s, i)), [onUbah]);
   const lanjut = useCallback(() => {
     onUbah((s) => {
-      if (s.mode !== "latihan" || s.pilihan[s.indeks] === null) return s;
+      if (!modeLatihan(s.mode) || s.pilihan[s.indeks] === null) return s;
       return s.indeks === s.soal.length - 1 ? selesaikan(s, false) : { ...s, indeks: s.indeks + 1 };
     });
   }, [onUbah]);
@@ -81,7 +82,7 @@ export function AnalogiGambar({ sesi, onUbah, onGanti, onMenu, statusSimpan }: P
       if (diTombol && (e.key === "Enter" || e.key === " ")) return;
 
       const terjawab = s.pilihan[s.indeks] !== null;
-      if (s.mode === "ujian") {
+      if (!modeLatihan(s.mode)) {
         if (e.key === "ArrowLeft") { e.preventDefault(); ke(s.indeks - 1); return; }
         if (e.key === "ArrowRight" || e.key === "Enter") { e.preventDefault(); ke(s.indeks + 1); return; }
       } else {
@@ -104,7 +105,7 @@ export function AnalogiGambar({ sesi, onUbah, onGanti, onMenu, statusSimpan }: P
       {ujian && sisa !== null && (
         <KopUjian
           label={"Soal " + pad(sesi.indeks + 1) + "/" + pad(sesi.soal.length)}
-          sub={"Analogi Gambar · " + NAMA_TINGKAT[soal.tingkat]}
+          sub={judul + " · " + soal.chip}
           sisaDetik={sisa}
           navigator={{ terisi: dijawab, total: sesi.soal.length, onBuka: () => setNavBuka(true) }}
         />
@@ -113,8 +114,8 @@ export function AnalogiGambar({ sesi, onUbah, onGanti, onMenu, statusSimpan }: P
       <main className="halaman">
         {!ujian && (
           <Kop
-            eyebrow={"Analogi Gambar · " + (selesai ? "Hasil " + namaMode(sesi.mode).toLowerCase() : namaMode(sesi.mode))}
-            judul="Analogi Gambar"
+            eyebrow={(selesai ? "Hasil · " : "") + namaMode(sesi.mode)}
+            judul={judul}
             skor={selesai ? benar + "/" + sesi.soal.length : benar + "/" + dijawab}
           />
         )}

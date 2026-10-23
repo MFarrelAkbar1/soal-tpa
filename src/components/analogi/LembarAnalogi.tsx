@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-import type { SoalAnalogi } from "../../analogi/generator";
-import { NAMA_TINGKAT } from "../../analogi/generator";
+import type { SoalTampil } from "../../analogi/tampil";
 import { pad } from "../../lib/util";
 import { Ikon } from "../Ikon";
 import { Figur } from "./Figur";
@@ -17,7 +16,7 @@ function Sel({ huruf, children }: { huruf: string; children: ReactNode }) {
 }
 
 // Baris "A → B   C → ?"
-export function BarisSoal({ soal }: { soal: SoalAnalogi }) {
+export function BarisSoal({ soal }: { soal: SoalTampil }) {
   return (
     <div className="ag-baris">
       <div className="ag-pasang">
@@ -52,7 +51,7 @@ const KETERANGAN: Record<Keadaan, string> = {
 };
 
 interface OpsiProps {
-  soal: SoalAnalogi;
+  soal: SoalTampil;
   pilihan: number | null;
   tampilKunci: boolean; // true = tandai kunci dan kunci pilihan (latihan setelah menjawab, pembahasan)
   onJawab?: (i: number) => void; // tanpa handler = hanya tampilan
@@ -89,7 +88,16 @@ export function OpsiGambar({ soal, pilihan, tampilKunci, onJawab, kecil = false 
   );
 }
 
-function Kabar({ soal, pilihan }: { soal: SoalAnalogi; pilihan: number }) {
+export function Penjelasan({ soal, kelas }: { soal: SoalTampil; kelas: string }) {
+  return (
+    <>
+      {soal.labelPenjelasan && <p className="ag-label-sendiri"><Ikon nama="awas" ukuran={14} />{soal.labelPenjelasan}</p>}
+      <p className={kelas}>{soal.penjelasan}</p>
+    </>
+  );
+}
+
+function Kabar({ soal, pilihan }: { soal: SoalTampil; pilihan: number }) {
   const tepat = pilihan === soal.kunci;
   return (
     <div className={"kabar " + (tepat ? "ok" : "no")} role="status">
@@ -97,14 +105,14 @@ function Kabar({ soal, pilihan }: { soal: SoalAnalogi; pilihan: number }) {
         <span className="kabar-ikon"><Ikon nama={tepat ? "cek" : "silang"} ukuran={16} /></span>
         <span>{tepat ? "Benar!" : "Belum tepat · kunci gambar " + (soal.kunci + 1)}</span>
       </div>
-      <p className="kabar-teks">{soal.penjelasan}</p>
-      {!tepat && <p className="kabar-teks ag-catatan">Gambar {pilihan + 1}: {soal.catatanOpsi[pilihan]}</p>}
+      <Penjelasan soal={soal} kelas="kabar-teks" />
+      {!tepat && soal.catatanOpsi && <p className="kabar-teks ag-catatan">Gambar {pilihan + 1}: {soal.catatanOpsi[pilihan]}</p>}
     </div>
   );
 }
 
 interface Props {
-  soal: SoalAnalogi;
+  soal: SoalTampil;
   indeks: number;
   total: number;
   pilihan: number | null;
@@ -119,7 +127,7 @@ export function LembarAnalogi({ soal, indeks, total, pilihan, latihan, onJawab }
       <div className="progres">
         <div className="progres-teks">
           <span>Soal {indeks + 1} dari {total}</span>
-          <span className="chip">{NAMA_TINGKAT[soal.tingkat]}</span>
+          <span className="chip">{soal.chip}</span>
         </div>
         <div
           className="progres-rel"
