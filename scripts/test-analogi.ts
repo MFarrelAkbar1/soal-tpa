@@ -2,12 +2,16 @@
 // Men-generate 1000 soal berbenih (campuran tingkat kesulitan) dan memastikan semuanya lolos
 // validasiSoal: tidak ada pilihan kembar, tepat satu pilihan cocok dengan aturan, setiap aturan
 // terlihat, dan tidak ada tafsiran lain dari A→B yang menunjuk pengecoh.
-// Juga memeriksa contoh di layar petunjuk, komposisi paket ujian, dan determinisme benih.
+// Juga memeriksa contoh di layar petunjuk, komposisi paket ujian, dan determinisme benih,
+// serta 30 soal baru TIU 5 (src/bca/data/tiu5-baru.ts).
 import { buatAcak } from "../src/analogi/acak.ts";
 import { CONTOH, SEMUA_TINGKAT, buatPaket, buatSoal, validasiSoal } from "../src/analogi/generator.ts";
 import type { SoalAnalogi, Tingkat } from "../src/analogi/generator.ts";
 import { kunciVisual } from "../src/analogi/gambar.ts";
 import { ANALOGI } from "../src/config/analogi.ts";
+import { SOAL_TIU5_BARU } from "../src/bca/data/tiu5-baru.ts";
+import { cerminH, kunciFig, putar } from "../src/analogi/vektor.ts";
+import type { Fig } from "../src/analogi/vektor.ts";
 
 const JUMLAH = 1000;
 const galat: string[] = [];
@@ -56,12 +60,41 @@ const x = JSON.stringify(buatSoal("sulit", buatAcak(7), "d"));
 const y = JSON.stringify(buatSoal("sulit", buatAcak(7), "d"));
 if (x !== y) galat.push("benih yang sama menghasilkan soal berbeda");
 
+// Soal baru TIU 5: pilihan tidak kembar, jawaban beda dari C, gambar di dalam kanvas, dan tidak ada
+// putaran/cerminan lain yang juga mengubah A menjadi B tetapi menunjuk ke salah satu pengecoh.
+const SIMETRI: ((f: Fig) => Fig)[] = [];
+for (let k = 0; k < 8; k++) {
+  SIMETRI.push((f) => putar(f, k * 45));
+  SIMETRI.push((f) => putar(cerminH(f), k * 45));
+}
+if (SOAL_TIU5_BARU.length !== 30) galat.push(`TIU 5 baru: ${SOAL_TIU5_BARU.length} soal, harus 30`);
+for (const s of SOAL_TIU5_BARU) {
+  const label = "TIU 5 baru " + s.id;
+  if (s.opsi.length !== 5) { galat.push(`${label}: ${s.opsi.length} pilihan`); continue; }
+  const kunciOpsi = s.opsi.map(kunciFig);
+  if (new Set(kunciOpsi).size !== 5) galat.push(`${label}: ada pilihan kembar`);
+  const benar = kunciOpsi[s.kunci - 1];
+  if (kunciFig(s.a) === kunciFig(s.b)) galat.push(`${label}: A sama dengan B`);
+  if (kunciFig(s.c) === benar) galat.push(`${label}: jawaban sama dengan C`);
+  for (const f of [s.a, s.b, s.c, ...s.opsi]) {
+    if (f.some((j) => j.t.some(([x, y]) => x < 2 || x > 98 || y < 2 || y > 98))) galat.push(`${label}: gambar keluar kanvas`);
+  }
+  const kunciB = kunciFig(s.b);
+  SIMETRI.forEach((T, i) => {
+    if (kunciFig(T(s.a)) !== kunciB) return;
+    const hasil = kunciFig(T(s.c));
+    const j = kunciOpsi.indexOf(hasil);
+    if (j >= 0 && j !== s.kunci - 1) galat.push(`${label}: tafsiran simetri #${i} menunjuk gambar ${j + 1}`);
+  });
+}
+
 const detik = ((performance.now() - mulai) / 1000).toFixed(1);
 if (galat.length) {
   console.error(`Tes Analogi Gambar gagal (${galat.length} masalah):`);
   for (const g of galat.slice(0, 40)) console.error("  - " + g);
   process.exit(1);
 }
-console.log(`Tes Analogi Gambar OK: ${JUMLAH} soal lolos validasi dalam ${detik} dtk ` +
+console.log(`Tes Analogi Gambar OK: ${JUMLAH} soal lolos validasi dalam ${detik} dtk, ` +
+  `${SOAL_TIU5_BARU.length} soal baru TIU 5 lolos ` +
   `(mudah ${perTingkat.mudah}, sedang ${perTingkat.sedang}, sulit ${perTingkat.sulit}; ${gabungan} bangun gabungan).`);
 console.log("  Sebaran aturan: " + [...perAturan.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => k + " " + v).join(", "));

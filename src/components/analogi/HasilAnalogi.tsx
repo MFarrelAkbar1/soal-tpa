@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { SesiAnalogi } from "../../analogi/sesi";
-import { durasiDetik, hitung, modeTiu5 } from "../../analogi/sesi";
+import { durasiDetik, hitung, modeTiu5, modeTiu5Baru } from "../../analogi/sesi";
 import { formatWaktu, pad } from "../../lib/util";
 import { Ikon } from "../Ikon";
 import { Grafik, Skor } from "../Hasil";
@@ -115,7 +115,7 @@ export function HasilAnalogi({ sesi, onUlangi, onMenu }: Props) {
           <dd className={kosong > 0 ? "tegas" : undefined}>{kosong} dari {total} soal</dd>
         </div>
       </dl>
-      <Grafik rekap={rekap} judul={modeTiu5(sesi.mode) ? "Per kejelasan aturan (menurut pembahasan buatan sendiri)" : "Per tingkat kesulitan"} />
+      <Grafik rekap={rekap} judul={modeTiu5Baru(sesi.mode) ? "Per jenis aturan" : modeTiu5(sesi.mode) ? "Per kejelasan aturan (menurut pembahasan buatan sendiri)" : "Per tingkat kesulitan"} />
       <Pembahasan sesi={sesi} />
       <div className="hasil-aksi">
         <button className="tombol" type="button" onClick={onUlangi}><Ikon nama="ulang" ukuran={18} />{modeTiu5(sesi.mode) ? "Ulangi dari awal" : "Ulangi dengan soal baru"}</button>

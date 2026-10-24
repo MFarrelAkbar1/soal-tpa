@@ -3,11 +3,15 @@ import type { SoalAnalogi } from "./generator";
 import { NAMA_TINGKAT } from "./generator";
 import type { SoalTiu5 } from "../bca/types";
 import { BAGIAN_GAMBAR, LABEL_PEMBAHASAN_TIU5, gambarTiu5 } from "../bca/data/tiu5";
+import type { SoalTiu5Baru } from "../bca/data/tiu5-baru";
+import { LABEL_SOAL_BARU } from "../bca/data/tiu5-baru";
+import type { Fig, JalurSvg } from "./vektor";
+import { keSvg } from "./vektor";
 
-// Bentuk soal yang ditampilkan UI Analogi Gambar: gambar SVG dari generator, atau
-// potongan gambar PNG dari PDF (soal asli TIU 5).
+// Bentuk soal yang ditampilkan UI Analogi Gambar: gambar SVG dari generator, potongan
+// gambar PNG dari PDF (soal asli TIU 5), atau gambar garis bebas (soal baru TIU 5).
 
-export type Visual = Gambar | { src: string };
+export type Visual = Gambar | { src: string } | { jalur: JalurSvg[] };
 
 export interface SoalTampil {
   id: string;
@@ -47,6 +51,21 @@ export function dariTiu5(s: SoalTiu5): SoalTampil {
     kunci: s.kunci - 1,
     penjelasan: s.pembahasan,
     labelPenjelasan: LABEL_PEMBAHASAN_TIU5,
+    catatanOpsi: null,
+  };
+}
+
+export function dariTiu5Baru(s: SoalTiu5Baru): SoalTampil {
+  const v = (f: Fig) => ({ jalur: keSvg(f) });
+  return {
+    id: s.id,
+    chip: "TIU 5 baru · No. " + s.nomor,
+    kelompok: s.kelompok,
+    a: v(s.a), b: v(s.b), c: v(s.c),
+    opsi: s.opsi.map(v),
+    kunci: s.kunci - 1,
+    penjelasan: s.pembahasan,
+    labelPenjelasan: LABEL_SOAL_BARU,
     catatanOpsi: null,
   };
 }

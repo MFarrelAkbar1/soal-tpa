@@ -2,15 +2,18 @@ import { useId } from "react";
 import type { Gambar, Primitif } from "../../analogi/gambar";
 import { deskripsi, primitif } from "../../analogi/gambar";
 import type { Visual } from "../../analogi/tampil";
+import type { JalurSvg } from "../../analogi/vektor";
 import { srcGambar } from "../../lib/util";
 
-// Satu gambar Analogi Gambar: SVG inline dari generator, atau PNG potongan PDF (soal asli).
+// Satu gambar Analogi Gambar: SVG inline dari generator, PNG potongan PDF (soal asli TIU 5),
+// atau SVG garis bebas (soal baru TIU 5).
 // Keduanya diletakkan di alas --img-plate yang selalu terang, jadi tetap terbaca di mode gelap
 // tanpa diinversi.
 export function Figur({ g, label }: { g: Visual; label?: string }) {
   if ("src" in g) {
     return <img className="figur" src={srcGambar(g.src)} alt={label ?? ""} loading="lazy" draggable={false} />;
   }
+  if ("jalur" in g) return <FigurJalur jalur={g.jalur} label={label} />;
   return <FigurSvg g={g} label={label} />;
 }
 
@@ -48,6 +51,20 @@ function FigurSvg({ g, label }: { g: Gambar; label?: string }) {
           />
         );
       })}
+    </svg>
+  );
+}
+
+const KELAS_JALUR: Record<JalurSvg["isi"], string> = {
+  tanpa: "fg-jalur",
+  putih: "fg-jalur fg-kosong",
+  hitam: "fg-jalur fg-hitam",
+};
+
+function FigurJalur({ jalur, label }: { jalur: JalurSvg[]; label?: string }) {
+  return (
+    <svg className="figur" viewBox="0 0 100 100" role="img" aria-label={label ?? "gambar"}>
+      {jalur.map((j, i) => <path key={i} className={KELAS_JALUR[j.isi]} d={j.d} />)}
     </svg>
   );
 }

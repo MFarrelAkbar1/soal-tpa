@@ -58,6 +58,12 @@ npm test          # tes generator Analogi Gambar (1000 soal harus lolos validasi
     diberi label "Pembahasan dibuat sendiri, bukan dari sumber". Mode Latihan
     (pembahasan langsung) dan Mode Ujian (10 menit, `src/config/psikotes.ts`).
     Juga tersedia sebagai pilihan "Soal asli TIU 5" di section Analogi Gambar.
+  - **TIU 5 soal baru**: 30 soal latihan tambahan bergaya TIU 5, dibuat sendiri
+    (bukan dari PDF) di `src/bca/data/tiu5-baru.ts`. Gambarnya garis SVG dari
+    `src/analogi/vektor.ts`; kunci dihitung dari aturan yang sama dengan A→B dan
+    diuji di `scripts/test-analogi.ts` (tidak ada pilihan kembar, tidak ada
+    putaran/cerminan lain yang menunjuk pengecoh). Mode Latihan dan Mode Ujian
+    (10 menit), tersedia di sub-bagian TIU 5 dan section Analogi Gambar.
   - **PAPI Kostik**: 90 pasang pernyataan a/b, disalin persis dari PDF.
   - **CBI**: 140 pernyataan Benar/Salah, disalin persis dari PDF; kata "tidak"
     disorot sesuai tips PDF.

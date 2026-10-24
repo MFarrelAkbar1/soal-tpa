@@ -499,6 +499,9 @@
   .fg-hitam { fill: var(--fig-ink); }
   .fg-arsir { stroke: var(--fig-ink); stroke-width: 1.6; }
   .fg-titik { fill: var(--fig-ink); }
+  .fg-jalur { fill: none; stroke: var(--fig-ink); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+  .fg-jalur.fg-kosong { fill: var(--img-plate); }
+  .fg-jalur.fg-hitam { fill: var(--fig-ink); }
 
   .ag-plate {
     display: block; padding: 4px; border-radius: var(--radius-sm);

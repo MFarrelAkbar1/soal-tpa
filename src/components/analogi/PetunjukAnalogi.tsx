@@ -1,9 +1,10 @@
 import type { ModeAnalogi } from "../../analogi/sesi";
-import { durasiDetik, modeLatihan, modeTiu5 } from "../../analogi/sesi";
+import { durasiDetik, modeLatihan, modeTiu5, modeTiu5Baru } from "../../analogi/sesi";
 import { CONTOH, SEMUA_TINGKAT } from "../../analogi/generator";
 import { dariGenerator } from "../../analogi/tampil";
 import { ANALOGI } from "../../config/analogi";
 import { SOAL_TIU5, LABEL_PEMBAHASAN_TIU5 } from "../../bca/data/tiu5";
+import { SOAL_TIU5_BARU } from "../../bca/data/tiu5-baru";
 import { Ikon } from "../Ikon";
 import { BarisSoal, OpsiGambar, PERTANYAAN } from "./LembarAnalogi";
 
@@ -27,8 +28,9 @@ const CONTOH_TAMPIL = dariGenerator(CONTOH);
 
 export function PetunjukAnalogi({ mode, onMulai, onMenu }: Props) {
   const tiu5 = modeTiu5(mode);
+  const baru = modeTiu5Baru(mode);
   const komposisi = mode === "ujian" ? ANALOGI.ujian.komposisi : ANALOGI.latihan.komposisi;
-  const total = tiu5 ? SOAL_TIU5.length : SEMUA_TINGKAT.reduce((n, t) => n + komposisi[t], 0);
+  const total = baru ? SOAL_TIU5_BARU.length : tiu5 ? SOAL_TIU5.length : SEMUA_TINGKAT.reduce((n, t) => n + komposisi[t], 0);
   const detik = durasiDetik(mode);
   return (
     <div className="ag-petunjuk">
@@ -52,7 +54,19 @@ export function PetunjukAnalogi({ mode, onMulai, onMenu }: Props) {
       </section>
 
       <section className="kartu ag-info">
-        {tiu5 ? (
+        {baru ? (
+          <>
+            <h3 className="grafik-judul">Soal baru TIU 5</h3>
+            <p className="ag-ket">
+              {total} soal latihan bergaya TIU 5 yang dibuat sendiri, <strong>bukan</strong> dari PDF. Gambarnya digambar
+              dengan garis tipis seperti soal asli, dan kunci dihitung dari aturan yang sama dengan A→B.
+            </p>
+            <p className="ag-ket">
+              Aturannya beragam: diputar atau dicerminkan, bagian ditambah atau dihapus, jumlah dan ukuran berubah,
+              warna dibalik, posisi bertukar, sampai dua perubahan sekaligus.
+            </p>
+          </>
+        ) : tiu5 ? (
           <>
             <h3 className="grafik-judul">Soal asli TIU 5</h3>
             <p className="ag-ket">
@@ -79,7 +93,7 @@ export function PetunjukAnalogi({ mode, onMulai, onMenu }: Props) {
         <ul className="ks-stat" aria-label="Ringkasan sesi">
           <li>
             <Ikon nama="grid" />
-            {tiu5 ? total + " soal asli" : total + " soal baru (" + komposisi.mudah + " mudah, " + komposisi.sedang + " sedang, " + komposisi.sulit + " sulit)"}
+            {baru ? total + " soal baru" : tiu5 ? total + " soal asli" : total + " soal baru (" + komposisi.mudah + " mudah, " + komposisi.sedang + " sedang, " + komposisi.sulit + " sulit)"}
           </li>
           {detik !== null
             ? <li><Ikon nama="jam" />{Math.round(detik / 60)} menit, tertutup otomatis</li>

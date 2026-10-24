@@ -2,29 +2,38 @@ import type { Rekap } from "../types";
 import { JUMLAH_OPSI, NAMA_TINGKAT, SEMUA_TINGKAT, buatPaket } from "./generator";
 import { benihAcak, buatAcak } from "./acak";
 import type { SoalTampil } from "./tampil";
-import { dariGenerator, dariTiu5 } from "./tampil";
+import { dariGenerator, dariTiu5, dariTiu5Baru } from "./tampil";
 import { ANALOGI } from "../config/analogi";
 import { PSIKOTES } from "../config/psikotes";
 import { SOAL_TIU5 } from "../bca/data/tiu5";
+import { SOAL_TIU5_BARU } from "../bca/data/tiu5-baru";
 import { tambahRekap } from "../lib/util";
 
 // Sesi Analogi Gambar. Soal generator dibuat baru setiap sesi dimulai; soal asli TIU 5
-// selalu 30 soal sesuai urutan PDF. Seluruh sesi (soal, jawaban, waktu akhir) disimpan
+// selalu 30 soal sesuai urutan PDF, soal baru TIU 5 selalu 30 soal buatan sendiri. Seluruh sesi (soal, jawaban, waktu akhir) disimpan
 // ke localStorage supaya tahan refresh.
 
-export type ModeAnalogi = "latihan" | "ujian" | "tiu5-latihan" | "tiu5-ujian";
+export type ModeAnalogi = "latihan" | "ujian" | "tiu5-latihan" | "tiu5-ujian" | "tiu5baru-latihan" | "tiu5baru-ujian";
 
+const SEMUA_MODE: ModeAnalogi[] = ["latihan", "ujian", "tiu5-latihan", "tiu5-ujian", "tiu5baru-latihan", "tiu5baru-ujian"];
+
+// soal TIU 5, baik soal asli PDF maupun soal baru
 export function modeTiu5(mode: ModeAnalogi): boolean {
-  return mode === "tiu5-latihan" || mode === "tiu5-ujian";
+  return mode !== "latihan" && mode !== "ujian";
+}
+
+export function modeTiu5Baru(mode: ModeAnalogi): boolean {
+  return mode === "tiu5baru-latihan" || mode === "tiu5baru-ujian";
 }
 
 export function modeLatihan(mode: ModeAnalogi): boolean {
-  return mode === "latihan" || mode === "tiu5-latihan";
+  return mode === "latihan" || mode === "tiu5-latihan" || mode === "tiu5baru-latihan";
 }
 
 export function durasiDetik(mode: ModeAnalogi): number | null {
   if (mode === "ujian") return ANALOGI.ujian.detik;
   if (mode === "tiu5-ujian") return PSIKOTES.tiu5.detik;
+  if (mode === "tiu5baru-ujian") return PSIKOTES.tiu5Baru.detik;
   return null;
 }
 
@@ -42,6 +51,7 @@ export interface SesiAnalogi {
 const KUNCI = "soal-tpa:analogi-sesi:v2";
 
 function buatSoal(mode: ModeAnalogi): SoalTampil[] {
+  if (modeTiu5Baru(mode)) return SOAL_TIU5_BARU.map(dariTiu5Baru);
   if (modeTiu5(mode)) return SOAL_TIU5.map(dariTiu5);
   const benih = benihAcak();
   const komposisi = mode === "ujian" ? ANALOGI.ujian.komposisi : ANALOGI.latihan.komposisi;
@@ -111,7 +121,7 @@ export function muatSesi(): SesiAnalogi | null {
   if (!mentah) return null;
   try {
     const s = JSON.parse(mentah) as SesiAnalogi;
-    if (s.versi !== 2 || !["latihan", "ujian", "tiu5-latihan", "tiu5-ujian"].includes(s.mode)) return null;
+    if (s.versi !== 2 || !SEMUA_MODE.includes(s.mode)) return null;
     if (!Array.isArray(s.soal) || s.soal.length === 0 || !Array.isArray(s.pilihan)) return null;
     if (s.pilihan.length !== s.soal.length) return null;
     if (!s.soal.every((x) => Array.isArray(x.opsi) && x.opsi.length === JUMLAH_OPSI && x.a && x.b && x.c)) return null;
@@ -144,5 +154,7 @@ export function namaMode(mode: ModeAnalogi): string {
     case "ujian": return "Mode Ujian";
     case "tiu5-latihan": return "Soal asli TIU 5 · Latihan";
     case "tiu5-ujian": return "Soal asli TIU 5 · Ujian";
+    case "tiu5baru-latihan": return "Soal baru TIU 5 · Latihan";
+    case "tiu5baru-ujian": return "Soal baru TIU 5 · Ujian";
   }
 }

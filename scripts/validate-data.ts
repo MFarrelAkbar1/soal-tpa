@@ -18,6 +18,7 @@ import { PAKET_BCA } from "../src/config/paket-bca.ts";
 import { ANALOGI } from "../src/config/analogi.ts";
 import { PSIKOTES } from "../src/config/psikotes.ts";
 import { BAGIAN_GAMBAR, SOAL_TIU5, gambarTiu5 } from "../src/bca/data/tiu5.ts";
+import { SOAL_TIU5_BARU } from "../src/bca/data/tiu5-baru.ts";
 import { PERNYATAAN_PAPI } from "../src/bca/data/papi.ts";
 import { PERNYATAAN_CBI } from "../src/bca/data/cbi.ts";
 
@@ -118,6 +119,13 @@ for (const s of SOAL_TIU5) {
     if (!existsSync(path.join(publicDir, f))) galat.push(`TIU 5 ${s.id}: gambar tidak ditemukan: public/${f}`);
   }
 }
+// soal baru TIU 5 (gambarnya diuji di scripts/test-analogi.ts)
+cekDaftar("TIU 5 baru", SOAL_TIU5_BARU, 30);
+for (const s of SOAL_TIU5_BARU) {
+  if (!Number.isInteger(s.kunci) || s.kunci < 1 || s.kunci > 5) galat.push(`TIU 5 baru ${s.id}: kunci ${s.kunci} di luar 1–5`);
+  if (!s.pembahasan.trim() || s.pembahasan.includes("#")) galat.push(`TIU 5 baru ${s.id}: pembahasan kosong atau belum bernomor`);
+}
+if (!Number.isInteger(PSIKOTES.tiu5Baru.detik) || PSIKOTES.tiu5Baru.detik < 60) galat.push(`TIU 5 baru: durasi ${PSIKOTES.tiu5Baru.detik} detik, minimal 60`);
 if (!Number.isInteger(PSIKOTES.tiu5.detik) || PSIKOTES.tiu5.detik < 60) galat.push(`TIU 5: durasi ${PSIKOTES.tiu5.detik} detik, minimal 60`);
 
 cekDaftar("PAPI", PERNYATAAN_PAPI, 90);
@@ -137,5 +145,5 @@ if (galat.length) {
 console.log(`Validasi data OK: ${bankSoal.length} soal, ${PAKET.length} paket ujian.`);
 console.log(`BCA Finance OK: ${soalBca.length} soal esai dari ${kasusBca.length} kasus, ` +
   `${soalBca.filter((s) => s.answer).length} dengan contoh jawaban, ${PAKET_BCA.length} paket ujian.`);
-console.log(`Psikotes BCA OK: TIU 5 ${SOAL_TIU5.length} soal (${SOAL_TIU5.length * BAGIAN_GAMBAR.length} gambar), ` +
+console.log(`Psikotes BCA OK: TIU 5 ${SOAL_TIU5.length} soal (${SOAL_TIU5.length * BAGIAN_GAMBAR.length} gambar) + ${SOAL_TIU5_BARU.length} soal baru, ` +
   `PAPI ${PERNYATAAN_PAPI.length} pasang, CBI ${PERNYATAAN_CBI.length} pernyataan.`);

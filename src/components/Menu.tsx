@@ -9,6 +9,7 @@ import { ANALOGI } from "../config/analogi";
 import { SEMUA_TINGKAT } from "../analogi/generator";
 import { modeTiu5 } from "../analogi/sesi";
 import { SOAL_TIU5 } from "../bca/data/tiu5";
+import { SOAL_TIU5_BARU } from "../bca/data/tiu5-baru";
 import type { SesiKuesioner, TesKuesioner } from "../bca/kuesioner";
 import { INFO_TES } from "../bca/kuesioner";
 import { PSIKOTES } from "../config/psikotes";
@@ -142,6 +143,8 @@ function KartuAnalogi({ tersimpan, onMulai, onLanjut }: { tersimpan: SesiAnalogi
           </button>
           <Pilihan nama="Soal asli TIU 5 · Latihan" ket={SOAL_TIU5.length + " soal dari PDF BCA Finance · pembahasan langsung"} onKlik={() => onMulai("tiu5-latihan")} />
           <Pilihan nama="Soal asli TIU 5 · Ujian" ket={SOAL_TIU5.length + " soal · urutan PDF · " + menit(PSIKOTES.tiu5.detik)} onKlik={() => onMulai("tiu5-ujian")} />
+          <Pilihan nama="Soal baru TIU 5 · Latihan" ket={SOAL_TIU5_BARU.length + " soal buatan sendiri bergaya TIU 5 · pembahasan langsung"} onKlik={() => onMulai("tiu5baru-latihan")} />
+          <Pilihan nama="Soal baru TIU 5 · Ujian" ket={SOAL_TIU5_BARU.length + " soal · " + menit(PSIKOTES.tiu5Baru.detik)} onKlik={() => onMulai("tiu5baru-ujian")} />
         </div>
       </div>
     </article>
@@ -216,12 +219,14 @@ export function Menu({
           <section className="bca-sub" aria-labelledby="bca-tiu5">
             <div className="bca-sub-kepala">
               <h4 className="bca-sub-nama" id="bca-tiu5">Psikotes 1 · TIU 5 (analogi gambar)</h4>
-              <p className="bca-sub-ket">{SOAL_TIU5.length} soal asli dari PDF · kunci dari PDF · pembahasan dibuat sendiri</p>
+              <p className="bca-sub-ket">{SOAL_TIU5.length} soal asli dari PDF · kunci dari PDF · pembahasan dibuat sendiri · plus {SOAL_TIU5_BARU.length} soal latihan baru</p>
             </div>
             {analogiTersimpan && modeTiu5(analogiTersimpan.mode) && <LanjutAnalogi sesi={analogiTersimpan} onKlik={onLanjutAnalogi} />}
             <div className="grid-mode dua">
               <Pilihan nama="Mode Latihan" ket="Urutan PDF · bebas waktu · pembahasan langsung" onKlik={() => onAnalogi("tiu5-latihan")} />
               <Pilihan nama="Mode Ujian" ket={SOAL_TIU5.length + " soal · urutan PDF · " + menit(PSIKOTES.tiu5.detik)} onKlik={() => onAnalogi("tiu5-ujian")} />
+              <Pilihan nama="Soal baru · Latihan" ket={SOAL_TIU5_BARU.length + " soal buatan sendiri · bebas waktu · pembahasan langsung"} onKlik={() => onAnalogi("tiu5baru-latihan")} />
+              <Pilihan nama="Soal baru · Ujian" ket={SOAL_TIU5_BARU.length + " soal buatan sendiri · " + menit(PSIKOTES.tiu5Baru.detik)} onKlik={() => onAnalogi("tiu5baru-ujian")} />
             </div>
           </section>
 
